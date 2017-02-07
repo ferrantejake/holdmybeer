@@ -1,0 +1,10 @@
+{
+    "src": "app/src",
+    "dest": "app/lib",
+    "tsfiles": [
+        "typings/index.d.ts",
+        "app/src/**/*.ts"
+    ],
+    "resources": "app/src/**/*.!(ts)",
+    "inlineSourcemaps": true
+}
