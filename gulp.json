@@ -1,0 +1,18 @@
+{
+    "src": "app/src/**/*",
+    "watchfiles": [
+        "app/src/**/*",
+        "app/views/**/*",
+        "app/public/**/*",
+        "index.js"
+    ],
+    "dest": "app/lib",
+    "tsfiles": [
+        "typings/index.d.ts",
+        "app/src/**/*.ts",
+        "app/*.ts",
+        "bin/www.ts"
+    ],
+    "resources": "app/src/**/*.!(ts)",
+    "inlineSourcemaps": true
+}
