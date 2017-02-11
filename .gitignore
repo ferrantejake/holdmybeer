@@ -3,6 +3,7 @@ app/lib
 typings/globals
 typings/modules
 *.js.map
+localconfig.json
 
 # Logs
 logs
