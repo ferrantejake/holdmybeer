@@ -9,3 +9,4 @@
 /// <reference path="modules/aws-sdk/index.d.ts" />
 /// <reference path="modules/express-serve-static-core/index.d.ts" />
 /// <reference path="modules/express/index.d.ts" />
+/// <reference path="modules/uuid/index.d.ts" />

@@ -2,7 +2,8 @@
   "dependencies": {
     "aws-sdk": "registry:dt/aws-sdk#0.0.0+20161119044246",
     "express": "registry:dt/express#4.0.0+20170118060322",
-    "express-serve-static-core": "registry:dt/express-serve-static-core#4.0.0+20161228005052"
+    "express-serve-static-core": "registry:dt/express-serve-static-core#4.0.0+20161228005052",
+    "uuid": "registry:npm/uuid#3.0.1+20161206160008"
   },
   "globalDependencies": {
     "body-parser": "registry:dt/body-parser#0.0.0+20160619023215",
