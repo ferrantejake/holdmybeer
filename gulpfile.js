@@ -18,7 +18,7 @@ const pack = require('./package.json');
 // const exec = require('child_process').exec;
 
 gulp.task('debug', 'Run the project and auto-restart for changes', function (project, debug) {
-    debug = debug || `${pack.name}:*`;
+    debug = debug || process.env.DEBUG || `${pack.name}:*`;
     console.log(`>> debug weather-stats application with DEBUG=${debug}`);
     G$.nodemon({
 
@@ -33,7 +33,7 @@ gulp.task('debug', 'Run the project and auto-restart for changes', function (pro
         ignore: `app/src`
     });
 }, {
-        options: {  
+        options: {
             project: `Project name: weather-stats`
         }
     });
