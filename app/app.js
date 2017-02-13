@@ -1,11 +1,11 @@
 const express         = require('express');
 const path            = require('path');
-const routes          = require('./lib/routes');
 const cookieParser    = require('cookie-parser');
 const bodyParser      = require('body-parser');
 const router          = express.Router();
-const app             = express();
-const init            = require('./lib/utils').init;
+const init            = require('./lib/utils').init;      // load environment variables
+const routes          = require('./lib/routes');          // load file dependencies
+const app             = express();                        // create app
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
