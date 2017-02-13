@@ -1,4 +1,4 @@
-import { DataQueries } from './DynamoDq';
+import { DataQueries } from '../DataQueries';
 interface Drink {
 
 }
