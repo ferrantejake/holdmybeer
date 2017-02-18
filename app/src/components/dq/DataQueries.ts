@@ -16,22 +16,21 @@ export enum ErrorType {
 
 export interface SelectOneResult<T> { success: boolean; value: T; }
 export interface SelectResult<T> { success: boolean; value: T[]; }
+
 export interface FindAndUpdateResult<T> { success: boolean; value: T; isModified: boolean; updatedExisting: boolean; upserted: any; }
+/** Represents the expected response from an insert */
+
 export interface InsertResult { success: boolean; }
+/** Represents the expected response from an update */
 export interface UpdateResult { success: boolean; count: number; isModified: boolean; isScanned: boolean; }
+
+/** Represents the expected response from a delete */
 export interface DeleteResult { success: boolean; count: number; isModified: boolean; }
 
+/** Represents a generic CRUD result */
 export interface CrudResult {
     error?: Error;
     data?: any;
-}
-
-export interface Alias {
-    _id: string;
-    alias: string;
-    scopeId: string;
-    objectType: string;
-    objectId: string;
 }
 
 export interface TransformMap<T> {
@@ -45,22 +44,21 @@ export interface KeyedTransform<T> {
 
 export type Transform<T> = (record: T) => any;
 
+/** Interface representing minimum document requirements. */
 export interface Document {
     id?: string;
     [k: string]: any;
 }
 
+/** Class representing base database transactions model. */
 export abstract class DataQueries<T extends Document> {
-
-    // protected indexNames: string[];
-    // protected fieldNames: string[];
     protected tableName: string;
 
     /*
-     * Creates a mapped version of the record using the specified fields
-     * @param {T} record The record to map
-     * @param {string[]} Fields the fields to use in the mapping
-     * @param {TransformMap<T>} [map] a map of transformations to apply to the field during mapping
+     * Creates a mapped version of the record using the specified fields.
+     * @param {T} record The record to map.
+     * @param {string[]} Fields the fields to use in the mapping.
+     * @param {TransformMap<T>} [map] a map of transformations to apply to the field during mapping.
      */
     public static mapRecord<T extends Document>(record: T, fields: string[], map?: TransformMap<T>): { readonly [P in keyof T]?: T[P]} {
         return Object.freeze(
@@ -87,20 +85,15 @@ export abstract class DataQueries<T extends Document> {
             }, {}));
     }
 
-    /*
-     * Creates a mapped version of the record using the specified fields
-     * @param {T} record The record to map
-     * @param {string[]} Fields the fields to use in the mapping
-     * @param {TransformMap<T>} [map] a map of transformations to apply to the field during mapping
-     */
-
     private createUUID() {
         // use v4 per: http://stackoverflow.com/a/20342413/2530285
         const x = uuid.v4();
     }
 
     /**
-     * CRUD without the Read Promise
+     * Wraps a CRUD Promise in a Promise without the Read Promise.
+     * @param {Promise<InsertResult>} Promise - The insert Promise.
+     * @return {Promise<CrudResult>} The insert result.
      */
     protected cPromise(promise: Promise<InsertResult>): Promise<CrudResult> {
         return new Promise((resolve, reject) => {
@@ -113,36 +106,28 @@ export abstract class DataQueries<T extends Document> {
     }
 
     /**
-     * Delete Promise
-     */
-    protected dPromise(promise: Promise<DeleteResult>): Promise<CrudResult> {
-        return new Promise((resolve, reject) => {
-            promise.then(resolve).catch(reject);
-        });
-    }
-
-    /**
-     * Update Promise
+     * Wraps an update Promise in a Promise.
+     * @param {Promise<UpdateResult>} Promise - The update Promise.
+     * @return {Promise<CrudResult>} The update result.
      */
     protected uPromise(promise: Promise<UpdateResult>): Promise<CrudResult> {
-        return new Promise((resolve, reject) => {
-            promise.then(resolve).catch(error => {
-                resolve(error);
-            });
-        });
+        return new Promise((resolve, reject) => promise.then(resolve).catch(resolve));
     }
 
     /**
-     * Find and update Promise
+     * Wraps a delete Promise in a Promise.
+     * @param {Promise<DeleteResult>} Promise - The delete Promise.
+     * @return {Promise<CrudResult>} The delete result.
      */
-    // protected fuPromise(promise: Promise<FindAndUpdateResult<T>>): Promise<CrudResult> {
-    //     return new Promise((resolve, reject) => {
-    //         promise.then(resolve).catch(error => {
-    //             resolve(error);
-    //         });
-    //     });
-    // }
+    protected dPromise(promise: Promise<DeleteResult>): Promise<CrudResult> {
+        return new Promise((resolve, reject) => promise.then(resolve).catch(reject));
+    }
 
+    /**
+     * Retrieves a record by the specified ID.
+     * @param {string} id - The ID of the record.
+     * @return {Promise<T[]>} A record Promise.
+     */
     public getById(id: string): Promise<T> {
         return new Promise<T>((resolve, reject) => {
             const p: DynamoDB.GetParam = {
@@ -152,43 +137,37 @@ export abstract class DataQueries<T extends Document> {
             console.log(p);
             aws.client().get(p, (error: Error, users: any) => {
                 if (error) reject(error);
-                // else ();
-                console.log(error);
-                console.log('users');
-                console.log(users);
+                else resolve(users);
             });
         });
     };
 
-    public parseGetResponse(response: any): T {
+    /**
+     * Retrieves records by the specified IDs.
+     * @param {string[]} ids - The IDs of the desired records.
+     * @return {Promise<T[]>} A Promise of records.
+     */
+    public getByIds(ids: string[]): Promise<T[]> {
         return null;
     }
 
-    public map(record: T): Object {
-        return record;
+    /**
+     * Updates a record by the specified ID.
+     * @param {string} id - The ID of the records.
+     * @return {Promise<void>} An empty Promise.
+     */
+    public updateById(id: string): Promise<UpdateResult> {
+        return null;
     }
 
-    public mapRecord(record: T, fields: string[], map?: TransformMap<T>): { readonly [P in keyof T]?: T[P]} {
-        return DataQueries.mapRecord<T>(record, fields, map);
+    /**
+     * Deletes a record by the specified ID.
+     * @param {string} id - The ID of the records.
+     * @return {Promise<void>} An empty Promise.
+     */
+    public deleteById(id: string): Promise<DeleteResult> {
+        return null;
     }
-
-    // public getByIds(ids: string[]): Promise<T[]> {
-    //     return this.defaultCollection.find({ _id: { $in: ids.map(id => this.formatId(id)) } });
-    // }
-
-    // public deleteById(id: string): Promise<CrudResult> {
-    //     return this.dPromise(this.defaultCollection.deleteOne({ _id: this.formatId(id) }));
-    // }
-
-    // public updateById(id: string, modifications: Object): Promise<CrudResult> {
-    //     if (Object.keys(modifications).length === 0)
-    //         return Promise.resolve({ success: true, isScanned: true });
-    //     return this.uPromise(this.defaultCollection.updateOne({ _id: this.formatId(id) }, { $set: modifications }));
-    // }
-
-    // public deleteByTestTag(testTag: string): Promise<CrudResult> {
-    //     return this.dPromise(this.defaultCollection.deleteMany({ testTag }));
-    // }
 
     // helpers
     // public fillMissing(arr: any[], field: string, idField?: string): Promise<void> {
@@ -214,4 +193,17 @@ export abstract class DataQueries<T extends Document> {
     //         });
     //     });
     // }
+
+    public parseGetResponse(response: any): T {
+        return null;
+    }
+
+    public map(record: T): Object {
+        return record;
+    }
+
+    public mapRecord(record: T, fields: string[], map?: TransformMap<T>): { readonly [P in keyof T]?: T[P]} {
+        return DataQueries.mapRecord<T>(record, fields, map);
+    }
+
 }
