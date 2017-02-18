@@ -1,4 +1,4 @@
-import { Document } from './DataQueries';
+import { Document, parseItemGet } from './documents';
 import * as AWS from 'aws-sdk';
 import { DynamoDB } from 'aws-sdk';
 import * as uuid from 'uuid';
@@ -43,12 +43,6 @@ export interface KeyedTransform<T> {
 }
 
 export type Transform<T> = (record: T) => any;
-
-/** Interface representing minimum document requirements. */
-export interface Document {
-    id?: string;
-    [k: string]: any;
-}
 
 /** Class representing base database transactions model. */
 export abstract class DataQueries<T extends Document> {
@@ -134,10 +128,9 @@ export abstract class DataQueries<T extends Document> {
                 TableName: this.tableName,
                 Key: { '_id': id }
             };
-            console.log(p);
-            aws.client().get(p, (error: Error, users: any) => {
+            aws.client().get(p, (error: Error, data: Document) => {
                 if (error) reject(error);
-                else resolve(users);
+                resolve((this.map(parseItemGet<T>(data)) as T));
             });
         });
     };
@@ -198,6 +191,11 @@ export abstract class DataQueries<T extends Document> {
         return null;
     }
 
+    /**
+     * Maps a database record to a consumable structure.
+     * @param {T} record - The database record.
+     * @return {Object} The refined object.
+     */
     public map(record: T): Object {
         return record;
     }

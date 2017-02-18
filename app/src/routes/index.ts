@@ -10,9 +10,8 @@ const pkg = require('../../../package.json');
 
 router.get('/', (req: express.Request, res: express.Response) => {
   console.log('serving index...');
-
-  dq.users.getById('ferrantejake').then(() => {
-    res.send('cool');
+  dq.users.getById('ferrantejake').then(user => {
+    res.send(user);
   });
 });
 

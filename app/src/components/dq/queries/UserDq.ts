@@ -2,6 +2,7 @@ import { DataQueries } from '../DataQueries';
 import * as AWS from 'aws-sdk';
 import { DynamoDB } from 'aws-sdk';
 
+/** Interface representing User model. */
 export interface User {
     id: string;
     username: string;
