@@ -1,2 +1,3 @@
-const index = {};
-exports = index;
+// import { index } from './upcItemDb';
+
+// export { index }
