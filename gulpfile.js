@@ -19,7 +19,7 @@ const pack = require('./package.json');
 
 gulp.task('debug', 'Run the project and auto-restart for changes', function (project, debug) {
     debug = debug || `${pack.name}:*`;
-    console.log(`>> debug weather-stats application with DEBUG=${debug}`);
+    console.log(`>> debug ${pack.name} application with DEBUG=${debug}`);
     G$.nodemon({
 
         script: `index.js`,
