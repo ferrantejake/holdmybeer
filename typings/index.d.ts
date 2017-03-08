@@ -8,3 +8,4 @@
 /// <reference path="globals/serve-static/index.d.ts" />
 /// <reference path="modules/express-serve-static-core/index.d.ts" />
 /// <reference path="modules/express/index.d.ts" />
+/// <reference path="modules/urlsafe-base64/index.d.ts" />

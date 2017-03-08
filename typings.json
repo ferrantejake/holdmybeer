@@ -1,7 +1,8 @@
 {
   "dependencies": {
     "express": "registry:dt/express#4.0.0+20170118060322",
-    "express-serve-static-core": "registry:dt/express-serve-static-core#4.0.0+20161228005052"
+    "express-serve-static-core": "registry:dt/express-serve-static-core#4.0.0+20161228005052",
+    "urlsafe-base64": "registry:dt/urlsafe-base64#1.0.0+20160510010627"
   },
   "globalDependencies": {
     "body-parser": "registry:dt/body-parser#0.0.0+20160619023215",
