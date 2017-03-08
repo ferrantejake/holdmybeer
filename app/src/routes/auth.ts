@@ -8,6 +8,11 @@ router.get('/session', (req: express.Request, res: express.Response) => {
     cryptoLib.generateSessionToken()
         .then(sessionToken => {
             res.json({ token: sessionToken });
+        })
+        .catch(error => {
+            // should probably log error here
+            debug(error);
+            res.status(500);
         });
 });
 
