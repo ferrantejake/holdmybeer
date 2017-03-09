@@ -1,8 +1,10 @@
-import { Document, parseItemGet } from './documents';
+import { Document } from './documents';
 import * as AWS from 'aws-sdk';
 import { DynamoDB } from 'aws-sdk';
 import * as uuid from 'uuid';
 import { aws } from '../';
+const debug = require('debug')('holdmybeer:dataqueries');
+const dynasty = require('dynasty');
 
 export enum ErrorType {
     Unknown,
@@ -45,9 +47,14 @@ export interface KeyedTransform<T> {
 export type Transform<T> = (record: T) => any;
 
 /** Class representing base database transactions model. */
-export abstract class DataQueries<T extends Document> {
-    protected tableName: string;
+export abstract class DataQueries<T> {
+    protected table: any;
 
+
+    constructor(tableName: string) {
+        debug('instantiating table:', tableName);
+        this.table = aws.dynamodb().table(tableName);
+    }
     /*
      * Creates a mapped version of the record using the specified fields.
      * @param {T} record The record to map.
@@ -117,6 +124,18 @@ export abstract class DataQueries<T extends Document> {
         return new Promise((resolve, reject) => promise.then(resolve).catch(reject));
     }
 
+    // Insert a document
+    public insert(record: T): Promise<InsertResult> {
+        return new Promise<InsertResult>((resolve, reject) => {
+            this.table.insert(record)
+                .then(() => resolve({ success: true } as InsertResult))
+                .catch((error: Error) => {
+                    debug(error);
+                    resolve({ success: false } as InsertResult);
+                });
+        });
+    };
+
     /**
      * Retrieves a record by the specified ID.
      * @param {string} id - The ID of the record.
@@ -124,14 +143,9 @@ export abstract class DataQueries<T extends Document> {
      */
     public getById(id: string): Promise<T> {
         return new Promise<T>((resolve, reject) => {
-            const p: DynamoDB.GetParam = {
-                TableName: this.tableName,
-                Key: { '_id': id }
-            };
-            aws.client().get(p, (error: Error, data: Document) => {
-                if (error) reject(error);
-                resolve((this.map(parseItemGet<T>(data)) as T));
-            });
+            this.table.find(id)
+                .then((document: T) => resolve(this.map(document) as T))
+                .catch(reject);
         });
     };
 
@@ -141,7 +155,11 @@ export abstract class DataQueries<T extends Document> {
      * @return {Promise<T[]>} A Promise of records.
      */
     public getByIds(ids: string[]): Promise<T[]> {
-        return null;
+        return new Promise<T[]>((resolve, reject) => {
+            this.table.batchFind(ids)
+                .then((documents: T[]) => resolve(documents.map<any>(document => this.map)))
+                .catch(reject);
+        });
     }
 
     /**
@@ -150,7 +168,11 @@ export abstract class DataQueries<T extends Document> {
      * @return {Promise<void>} An empty Promise.
      */
     public updateById(id: string): Promise<UpdateResult> {
-        return null;
+        return new Promise<UpdateResult>((resolve, reject) => {
+            this.table.update(id)
+                .then(console.log)
+                .catch(console.log);
+        });
     }
 
     /**
@@ -161,31 +183,6 @@ export abstract class DataQueries<T extends Document> {
     public deleteById(id: string): Promise<DeleteResult> {
         return null;
     }
-
-    // helpers
-    // public fillMissing(arr: any[], field: string, idField?: string): Promise<void> {
-    //     return new Promise<void>((resolve, reject) => {
-    //         const missingIds: string[] = [];
-    //         // get ids for records we don't have
-    //         arr.forEach(item => {
-    //             if (typeof (item[idField || field]) === 'string') {
-    //                 missingIds.push(this.formatId(item[idField || field]));
-    //             }
-    //         });
-    //         this.getByIds(missingIds).then(missing => {
-    //             // fill in the records we don't have
-    //             missing.forEach(record => {
-    //                 for (const item of arr) {
-    //                     if (this.unmapId(item[idField || field]) === (<any>record)._id.toString()) {
-    //                         item[field] = record;
-    //                         break;
-    //                     }
-    //                 }
-    //             });
-    //             resolve();
-    //         });
-    //     });
-    // }
 
     public parseGetResponse(response: any): T {
         return null;

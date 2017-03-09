@@ -4,22 +4,21 @@ import * as AWS from 'aws-sdk';
 import { DynamoDB } from 'aws-sdk';
 
 /** Interface representing User model. */
-export interface User extends Document {
-    username: string;
+export interface Token extends Document {
     first: string;
     last: string;
     nick: string;
 };
 
-export class UserDq extends DataQueries<User> {
+export class TokenDq extends DataQueries<Token> {
     public constructor() {
-        super('holdmybeer_users');
+        super('holdmybeer_tokens');
     }
 
-    public map(record: User): { readonly [P in keyof User]?: User[P]; } {
+    public map(record: Token): { readonly [P in keyof Token]?: Token[P]; } {
         return this.mapRecord(
             record,
-            ['_id', 'username', 'first', 'last', 'nick'],
+            ['_id', 'createdAt', 'userId', 'scope', 'accessToken'],
             { _id: 'id' });
     }
 }

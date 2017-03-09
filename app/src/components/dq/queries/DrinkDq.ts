@@ -1,7 +1,11 @@
 import { DataQueries } from '../DataQueries';
-interface Drink {
+import { Document } from '../documents';
+interface Drink extends Document {
 
 }
 
-export class DrinkDq extends DataQueries<DrinkDq> {
+export class DrinkDq extends DataQueries<Drink> {
+    public constructor() {
+        super('holdmybeer_drinks');
+    }
 }
