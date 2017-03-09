@@ -8,6 +8,8 @@ const debug = require('debug')('holdmybeer:index');
 const pkg = require('../../../package.json');
 /* GET home page. */
 
+router.use('/users', require('./users'));
+
 router.get('/', (req: express.Request, res: express.Response) => {
   console.log('serving index...');
   dq.users.getById('ferrantejake').then(user => {
@@ -19,4 +21,5 @@ router.post('/', (req: express.Request, res: express.Response) => {
   console.log('posting user');
   // res.render('index', { title: pkg.name, version: pkg.version, description: pkg.description, message: '' });
 });
+
 module.exports = router;

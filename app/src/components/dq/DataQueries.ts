@@ -22,7 +22,7 @@ export interface SelectResult<T> { success: boolean; value: T[]; }
 export interface FindAndUpdateResult<T> { success: boolean; value: T; isModified: boolean; updatedExisting: boolean; upserted: any; }
 /** Represents the expected response from an insert */
 
-export interface InsertResult { success: boolean; }
+export interface InsertResult { success: boolean; isModified: boolean; }
 /** Represents the expected response from an update */
 export interface UpdateResult { success: boolean; count: number; isModified: boolean; isScanned: boolean; }
 
@@ -47,9 +47,8 @@ export interface KeyedTransform<T> {
 export type Transform<T> = (record: T) => any;
 
 /** Class representing base database transactions model. */
-export abstract class DataQueries<T> {
+export abstract class DataQueries<T extends Document> {
     protected table: any;
-
 
     constructor(tableName: string) {
         debug('instantiating table:', tableName);
@@ -86,9 +85,27 @@ export abstract class DataQueries<T> {
             }, {}));
     }
 
-    private createUUID() {
+    // Create and return UUID.
+    private createUUID(): string {
         // use v4 per: http://stackoverflow.com/a/20342413/2530285
-        const x = uuid.v4();
+        return uuid.v4();
+    }
+
+    // Alters the record being inserted to fit the structure of the expected data.
+    protected mapForDatabase(record: T) {
+        this.formatId(record);
+        this.formatCreatedAt(record);
+    }
+
+    protected formatId(record: T) {
+        if (!record) return;
+        if (!record.id) record.id = this.createUUID();
+    }
+
+    protected formatCreatedAt(record: T) {
+        if (!record) return;
+        if (!record.createdAt || !(typeof record.createdAt === 'string'))
+            record.createdAt = new Date(Date.now()).toISOString() as any;
     }
 
     /**
@@ -97,13 +114,7 @@ export abstract class DataQueries<T> {
      * @return {Promise<CrudResult>} The insert result.
      */
     protected cPromise(promise: Promise<InsertResult>): Promise<CrudResult> {
-        return new Promise((resolve, reject) => {
-            promise.then(value => {
-                resolve(value);
-            }).catch(error => {
-                resolve(error);
-            });
-        });
+        return new Promise((resolve, reject) => promise.then(resolve).catch(resolve));
     }
 
     /**
@@ -126,12 +137,20 @@ export abstract class DataQueries<T> {
 
     // Insert a document
     public insert(record: T): Promise<InsertResult> {
+        // There are 3 potential outcomes to an insert:
+        // 1: Insert successfull:   success:true, isModified:true
+        // 2: Record exists:        success:true, isModified:false
+        // 3: Insert failure:        success:false, isModified:false
+
         return new Promise<InsertResult>((resolve, reject) => {
-            this.table.insert(record)
-                .then(() => resolve({ success: true } as InsertResult))
+            this.mapForDatabase(record);
+            const options = { ConditionExpression: 'attribute_not_exists(id)' };
+            this.table.insert(record, options)
+                .then(() => resolve({ success: true, isModified: true } as InsertResult))
                 .catch((error: Error) => {
-                    debug(error);
-                    resolve({ success: false } as InsertResult);
+                    if (error && error.message === 'The conditional request failed')
+                        return resolve({ success: true, isModified: false } as InsertResult);
+                    else resolve({ success: false, isModified: false } as InsertResult);
                 });
         });
     };
@@ -160,7 +179,7 @@ export abstract class DataQueries<T> {
                 .then((documents: T[]) => resolve(documents.map<any>(document => this.map)))
                 .catch(reject);
         });
-    }
+    };
 
     /**
      * Updates a record by the specified ID.
@@ -173,7 +192,7 @@ export abstract class DataQueries<T> {
                 .then(console.log)
                 .catch(console.log);
         });
-    }
+    };
 
     /**
      * Deletes a record by the specified ID.
@@ -182,7 +201,7 @@ export abstract class DataQueries<T> {
      */
     public deleteById(id: string): Promise<DeleteResult> {
         return null;
-    }
+    };
 
     public parseGetResponse(response: any): T {
         return null;
@@ -200,5 +219,4 @@ export abstract class DataQueries<T> {
     public mapRecord(record: T, fields: string[], map?: TransformMap<T>): { readonly [P in keyof T]?: T[P]} {
         return DataQueries.mapRecord<T>(record, fields, map);
     }
-
-}
+};
