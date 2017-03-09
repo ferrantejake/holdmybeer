@@ -26,10 +26,9 @@ export class UserDq extends DataQueries<User> {
     }
 
     // Alters the record being inserted to fit the structure of the expected data.
-    protected mapForDatabase(record: User) {
+    protected mapForInsert(record: User) {
         this.formatCreatedAt(record);
         delete record.id;
-        record.createdAt.toString();
         debug('mapped value', record, typeof record.createdAt);
     }
 
@@ -38,7 +37,7 @@ export class UserDq extends DataQueries<User> {
 
     public insert(record: User): Promise<Queries.InsertResult> {
         return new Promise<Queries.InsertResult>((resolve, reject) => {
-            this.mapForDatabase(record);
+            this.mapForInsert(record);
             const options = { ConditionExpression: `attribute_not_exists(username)` };
             this.table.insert(record, options)
                 .then(() => resolve({ success: true, isModified: true } as Queries.InsertResult))
@@ -46,6 +45,23 @@ export class UserDq extends DataQueries<User> {
                     if (error && error.message === 'The conditional request failed')
                         return resolve({ success: true, isModified: false } as Queries.InsertResult);
                     else resolve({ success: false, isModified: false } as Queries.InsertResult);
+                });
+        });
+    };
+
+    public updateById(id: string, fields: Object): Promise<Queries.UpdateResult> {
+        return new Promise<Queries.UpdateResult>((resolve, reject) => {
+            this.mapForUpdate(fields as User);
+            const options = { ReturnValues: 'UPDATED_OLD', ConditionExpression: 'attribute_exists(username)' };
+            this.table.update(id, fields, options)
+                .then((response: any) => {
+                    const stats = this.updateStats(response, fields);
+                    resolve({ success: true, count: stats.count, isModified: stats.isModified });
+                })
+                .catch((error: Error) => {
+                    if (error && error.message === 'The conditional request failed')
+                        return resolve({ success: true, count: 0, isModified: false });
+                    else reject(error);
                 });
         });
     };

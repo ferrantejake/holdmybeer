@@ -24,7 +24,7 @@ export interface FindAndUpdateResult<T> { success: boolean; value: T; isModified
 
 export interface InsertResult { success: boolean; isModified: boolean; }
 /** Represents the expected response from an update */
-export interface UpdateResult { success: boolean; count: number; isModified: boolean; isScanned: boolean; }
+export interface UpdateResult { success: boolean; count: number; isModified: boolean; }
 
 /** Represents the expected response from a delete */
 export interface DeleteResult { success: boolean; count: number; isModified: boolean; }
@@ -92,9 +92,16 @@ export abstract class DataQueries<T extends Document> {
     }
 
     // Alters the record being inserted to fit the structure of the expected data.
-    protected mapForDatabase(record: T) {
+    protected mapForInsert(record: T) {
         this.formatId(record);
         this.formatCreatedAt(record);
+    }
+
+    // Alters the record being inserted to fit the structure of the expected data.
+    // Removes fields which will always conflict
+    protected mapForUpdate(record: T) {
+        delete record.id;
+        delete record.createdAt;
     }
 
     protected formatId(record: T) {
@@ -140,17 +147,17 @@ export abstract class DataQueries<T extends Document> {
         // There are 3 potential outcomes to an insert:
         // 1: Insert successfull:   success:true, isModified:true
         // 2: Record exists:        success:true, isModified:false
-        // 3: Insert failure:        success:false, isModified:false
+        // 3: Insert failure:       reject, error
 
         return new Promise<InsertResult>((resolve, reject) => {
-            this.mapForDatabase(record);
+            this.mapForInsert(record);
             const options = { ConditionExpression: 'attribute_not_exists(id)' };
             this.table.insert(record, options)
-                .then(() => resolve({ success: true, isModified: true } as InsertResult))
+                .then(() => resolve({ success: true, isModified: true }))
                 .catch((error: Error) => {
                     if (error && error.message === 'The conditional request failed')
-                        return resolve({ success: true, isModified: false } as InsertResult);
-                    else resolve({ success: false, isModified: false } as InsertResult);
+                        return resolve({ success: true, isModified: false });
+                    else reject(error);
                 });
         });
     };
@@ -186,13 +193,41 @@ export abstract class DataQueries<T extends Document> {
      * @param {string} id - The ID of the records.
      * @return {Promise<void>} An empty Promise.
      */
-    public updateById(id: string): Promise<UpdateResult> {
+    public updateById(id: string, fields: Object): Promise<UpdateResult> {
+        // There are 3 potential outcomes to an insert:
+        // 1: Update successfull:   success:true, count:n, isModified: boolean
+        // 2: Record DNE:           success:true, count: 0, isModified: false
+        // 3: Update failure:       reject, error
+
+        const options = { ReturnValues: 'UPDATED_OLD', ConditionExpression: 'attribute_exists(id)' };
         return new Promise<UpdateResult>((resolve, reject) => {
-            this.table.update(id)
-                .then(console.log)
-                .catch(console.log);
+            this.table.update(id, fields, options)
+                .then((response: any) => {
+                    const stats = this.updateStats(response, fields);
+                    resolve({ success: true, count: stats.count, isModified: stats.isModified });
+                })
+                .catch((error: Error) => {
+                    if (error && error.message === 'The conditional request failed')
+                        return resolve({ success: true, count: 0, isModified: false });
+                    else reject(error);
+                });
         });
     };
+
+    // Gather statistics on update results
+    public updateStats(old: Object, update: any): any {
+        const stats = {
+            count: 0,
+            isModified: false
+        };
+        Object.keys(old).forEach(key => {
+            if (old[key] !== update[key]) {
+                stats.count++;
+                stats.isModified = true;
+            }
+        });
+        return stats;
+    }
 
     /**
      * Deletes a record by the specified ID.
@@ -202,10 +237,6 @@ export abstract class DataQueries<T extends Document> {
     public deleteById(id: string): Promise<DeleteResult> {
         return null;
     };
-
-    public parseGetResponse(response: any): T {
-        return null;
-    }
 
     /**
      * Maps a database record to a consumable structure.
