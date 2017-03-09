@@ -176,7 +176,7 @@ export abstract class DataQueries<T extends Document> {
     public getByIds(ids: string[]): Promise<T[]> {
         return new Promise<T[]>((resolve, reject) => {
             this.table.batchFind(ids)
-                .then((documents: T[]) => resolve(documents.map<any>(document => this.map)))
+                .then((documents: T[]) => resolve(documents.map<any>(document => this.map(document))))
                 .catch(reject);
         });
     };
