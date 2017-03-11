@@ -214,7 +214,7 @@ export abstract class DataQueries<T extends Document> {
         });
     };
 
-    // Gather statistics on update results
+    // Gather statistics on update result (consumed in an UpdateResult)
     public updateStats(old: Object, update: any): any {
         const stats = {
             count: 0,
@@ -229,13 +229,15 @@ export abstract class DataQueries<T extends Document> {
         return stats;
     }
 
-    /**
-     * Deletes a record by the specified ID.
-     * @param {string} id - The ID of the records.
-     * @return {Promise<void>} An empty Promise.
-     */
+    // Worth nothing this system does not `ensure` that a delete has actually
+    // taken place, but assumes if there was no error that the delete was successfull.
     public deleteById(id: string): Promise<DeleteResult> {
-        return null;
+        return new Promise<DeleteResult>((resolve, reject) => {
+            this.table.remove(id)
+                // Because we do not ensure a deletion, return undefined for modification and count.
+                .then(() => resolve({ count: undefined, isModified: undefined, success: true } as DeleteResult))
+                .catch(reject);
+        });
     };
 
     /**
