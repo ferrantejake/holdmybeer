@@ -1,6 +1,4 @@
 import { Document } from './documents';
-import * as AWS from 'aws-sdk';
-import { DynamoDB } from 'aws-sdk';
 import * as uuid from 'uuid';
 import { aws } from '../';
 const debug = require('debug')('holdmybeer:dataqueries');
