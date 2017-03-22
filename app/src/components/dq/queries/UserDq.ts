@@ -1,8 +1,6 @@
 import { DataQueries } from '../DataQueries';
 import * as Queries from '../DataQueries';
 import { Document } from '../documents';
-import * as AWS from 'aws-sdk';
-import { DynamoDB } from 'aws-sdk';
 const debug = require('debug')('holdmybeer:dataqueries-users');
 
 /** Interface representing User model. */

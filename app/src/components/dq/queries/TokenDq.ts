@@ -1,7 +1,5 @@
 import { DataQueries } from '../DataQueries';
 import { Document } from '../documents';
-import * as AWS from 'aws-sdk';
-import { DynamoDB } from 'aws-sdk';
 
 /** Interface representing User model. */
 export interface Token extends Document {
