@@ -12,11 +12,4 @@ export class TokenDq extends DataQueries<Token> {
     public constructor() {
         super('holdmybeer_tokens');
     }
-
-    public map(record: Token): { readonly [P in keyof Token]?: Token[P]; } {
-        return this.mapRecord(
-            record,
-            ['_id', 'createdAt', 'userId', 'scope', 'accessToken'],
-            { _id: 'id' });
-    }
 }
