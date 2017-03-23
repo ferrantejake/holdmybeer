@@ -16,13 +16,6 @@ export class UserDq extends DataQueries<User> {
         super('holdmybeer_users');
     }
 
-    public map(record: User): { readonly [P in keyof User]?: User[P]; } {
-        return this.mapRecord(
-            record,
-            ['username', 'first', 'last', 'nick'],
-            {});
-    }
-
     // Alters the record being inserted to fit the structure of the expected data.
     protected mapForInsert(record: User) {
         this.formatCreatedAt(record);

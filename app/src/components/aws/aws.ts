@@ -1,6 +1,4 @@
-'use strict';
-
-import * as AWS from 'aws-sdk';
+// import * as AWS from 'aws-sdk';
 const debug = require('debug')('holdmybeer:aws');
 
 const config = {

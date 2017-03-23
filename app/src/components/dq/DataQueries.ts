@@ -1,8 +1,8 @@
 import { Document } from './documents';
 import * as uuid from 'uuid';
-import { aws } from '../';
+import * as aws from '../aws';
 const debug = require('debug')('holdmybeer:dataqueries');
-const dynasty = require('dynasty');
+const debugV = require('debug')('holdmybeer-v:dataqueries');
 
 export enum ErrorType {
     Unknown,
@@ -49,7 +49,7 @@ export abstract class DataQueries<T extends Document> {
     protected table: any;
 
     constructor(tableName: string) {
-        debug('instantiating table:', tableName);
+        debugV('instantiating table:', tableName);
         this.table = aws.dynamodb().table(tableName);
     }
     /*
@@ -102,6 +102,10 @@ export abstract class DataQueries<T extends Document> {
         delete record.createdAt;
     }
 
+    protected unmapRecord(record: any): T {
+        return record;
+    }
+
     protected formatId(record: T) {
         if (!record) return;
         if (!record.id) record.id = this.createUUID();
@@ -111,33 +115,6 @@ export abstract class DataQueries<T extends Document> {
         if (!record) return;
         if (!record.createdAt || !(typeof record.createdAt === 'string'))
             record.createdAt = new Date(Date.now()).toISOString() as any;
-    }
-
-    /**
-     * Wraps a CRUD Promise in a Promise without the Read Promise.
-     * @param {Promise<InsertResult>} Promise - The insert Promise.
-     * @return {Promise<CrudResult>} The insert result.
-     */
-    protected cPromise(promise: Promise<InsertResult>): Promise<CrudResult> {
-        return new Promise((resolve, reject) => promise.then(resolve).catch(resolve));
-    }
-
-    /**
-     * Wraps an update Promise in a Promise.
-     * @param {Promise<UpdateResult>} Promise - The update Promise.
-     * @return {Promise<CrudResult>} The update result.
-     */
-    protected uPromise(promise: Promise<UpdateResult>): Promise<CrudResult> {
-        return new Promise((resolve, reject) => promise.then(resolve).catch(resolve));
-    }
-
-    /**
-     * Wraps a delete Promise in a Promise.
-     * @param {Promise<DeleteResult>} Promise - The delete Promise.
-     * @return {Promise<CrudResult>} The delete result.
-     */
-    protected dPromise(promise: Promise<DeleteResult>): Promise<CrudResult> {
-        return new Promise((resolve, reject) => promise.then(resolve).catch(reject));
     }
 
     // Insert a document
@@ -168,7 +145,7 @@ export abstract class DataQueries<T extends Document> {
     public getById(id: string): Promise<T> {
         return new Promise<T>((resolve, reject) => {
             this.table.find(id)
-                .then((document: T) => resolve(this.map(document) as T))
+                .then((document: T) => resolve(document as T))
                 .catch(reject);
         });
     };
@@ -181,7 +158,7 @@ export abstract class DataQueries<T extends Document> {
     public getByIds(ids: string[]): Promise<T[]> {
         return new Promise<T[]>((resolve, reject) => {
             this.table.batchFind(ids)
-                .then((documents: T[]) => resolve(documents.map<any>(document => this.map(document))))
+                .then((documents: T[]) => resolve(documents))
                 .catch(reject);
         });
     };
@@ -206,7 +183,7 @@ export abstract class DataQueries<T extends Document> {
                 })
                 .catch((error: Error) => {
                     if (error && error.message === 'The conditional request failed')
-                        return resolve({ success: true, count: 0, isModified: false });
+                        return resolve({ success: true, count: undefined, isModified: undefined });
                     else reject(error);
                 });
         });
@@ -237,17 +214,4 @@ export abstract class DataQueries<T extends Document> {
                 .catch(reject);
         });
     };
-
-    /**
-     * Maps a database record to a consumable structure.
-     * @param {T} record - The database record.
-     * @return {Object} The refined object.
-     */
-    public map(record: T): Object {
-        return record;
-    }
-
-    public mapRecord(record: T, fields: string[], map?: TransformMap<T>): { readonly [P in keyof T]?: T[P]} {
-        return DataQueries.mapRecord<T>(record, fields, map);
-    }
 };

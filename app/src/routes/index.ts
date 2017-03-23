@@ -2,7 +2,7 @@
 
 import * as express from 'express';
 import * as AWS from 'aws-sdk';
-import { dq } from '../components';
+import { dq, rest } from '../components';
 const router = express.Router();
 const debug = require('debug')('holdmybeer:index');
 const pkg = require('../../../package.json');
@@ -12,14 +12,9 @@ router.use('/users', require('./users'));
 
 router.get('/', (req: express.Request, res: express.Response) => {
   console.log('serving index...');
-  dq.users.getById('ferrantejake').then(user => {
-    res.send(user);
-  });
+  res.render('index', { title: pkg.name, version: pkg.version, description: pkg.description });
 });
 
-router.post('/', (req: express.Request, res: express.Response) => {
-  console.log('posting user');
-  // res.render('index', { title: pkg.name, version: pkg.version, description: pkg.description, message: '' });
-});
+router.all('*', rest.notAllowed);
 
 module.exports = router;

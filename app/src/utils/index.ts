@@ -1,2 +1,2 @@
-import * as localTools from './localTools';
-export { localTools };
+import * as init from './init';
+export { init };

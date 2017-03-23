@@ -10,4 +10,4 @@ const dq = {
 };
 
 // Export data query interfaces
-export { dq };
+export { dq }
