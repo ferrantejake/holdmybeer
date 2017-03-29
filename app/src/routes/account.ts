@@ -1,0 +1,47 @@
+import { cryptoLib, rest } from '../utils';
+import * as express from 'express';
+const router = express.Router();
+const debug = require('debug')('holdmybeer:auth');
+
+module.exports = router;
+
+// Describe what the endpoints will allow for parameters, if any.
+const paramOptions = {
+
+};
+
+const verify = rest.verify(paramOptions);
+const validate = rest.validate(paramOptions);
+const respond = rest.respond(debug);
+
+router.route('/status')
+    .get(verify, validate, respond(accountStatus));
+router.route('/session')
+    .get(verify, validate, respond(session));
+router.route('/login')
+    .get(verify, validate, respond(login));
+router.route('/logout')
+    .get(verify, validate, respond(logout));
+
+// Request a new device authentication session.
+function session(req: express.Request, res: express.Response): Promise<rest.Response> {
+    return new Promise<rest.Response>((resolve, reject) => {
+        cryptoLib.generateSessionToken()
+            .then(sessionToken => res.json({ token: sessionToken }));
+    });
+}
+
+// Check the status of an account
+function accountStatus(req: express.Request, res: express.Response): Promise<rest.Response> {
+    return new Promise<rest.Response>((resolve, reject) => { });
+}
+
+// Log into an account using an authorization provider.
+function login(req: express.Request, res: express.Response): Promise<rest.Response> {
+    return new Promise<rest.Response>((resolve, reject) => { });
+}
+
+// Log out of an account.
+function logout(req: express.Request, res: express.Response): Promise<rest.Response> {
+    return new Promise<rest.Response>((resolve, reject) => { });
+}

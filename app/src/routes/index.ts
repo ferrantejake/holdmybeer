@@ -4,7 +4,7 @@ const debug = require('debug')('holdmybeer:index');
 const pkg = require('../../../package.json');
 
 // Import endpoints from alternative routes.
-router.use('/auth', require('./auth'));
+router.use('/account', require('./account'));
 
 /* GET home page. */
 router.get('/', (req: express.Request, res: express.Response) => {
