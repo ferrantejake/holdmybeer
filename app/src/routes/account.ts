@@ -1,4 +1,4 @@
-import { cryptoLib, rest } from '../utils';
+import { cryptoLib, rest, token } from '../utils';
 import * as express from 'express';
 const router = express.Router();
 const debug = require('debug')('holdmybeer:auth');
@@ -26,8 +26,12 @@ router.route('/logout')
 // Request a new device authentication session.
 function session(req: express.Request, res: express.Response): Promise<rest.Response> {
     return new Promise<rest.Response>((resolve, reject) => {
-        cryptoLib.generateSessionToken()
-            .then(sessionToken => res.json({ token: sessionToken }));
+
+        // Create new token
+        // Repond with token code
+
+        // token.create()
+        //     .then(sessionToken => res.json({ token: sessionToken }));
     });
 }
 
