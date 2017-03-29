@@ -2,19 +2,87 @@ import * as express from 'express';
 import STATUS = require('http-status');
 
 // Verify that the request structure is appropriate.
-export function verify(options?: Object): express.RequestHandler {
-    return null;
+export function verify(schema: any) {
+    return (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        const path = req.route.path;
+        const method = req.method.toLowerCase();
+
+        if (!schema.hasOwnProperty(path) || !schema[path].hasOwnProperty(method) || schema[path][method].length === 0)
+            return next();
+
+        const verifiers: Function[] = schema[path][method];
+
+        // Turn verifiers into promises
+        const promises = verifiers.map(func =>
+            (): Promise<any> =>
+                new Promise<any>((resolve, reject) => {
+                    // Reject if response is sent before a next call
+                    const onFinish = () => {
+                        res.removeListener('finish', onFinish);
+                        reject();
+                    };
+
+                    res.on('finish', onFinish);
+
+                    // Resolve on next call from verifier
+                    func(req, res, () => {
+                        res.removeListener('finish', onFinish);
+                        resolve(true);
+                    });
+                }));
+
+        // If promise chain succeeds, call `next` middleware
+        promises.push(() =>
+            new Promise<any>((resolve, reject) => { resolve(next()); }));
+
+        // Do a sequence of verifiers
+        const all = promises.reduce((prev, cur) =>
+            prev.then(() =>
+                new Promise((resolve, reject) => {
+                    cur().then(resolve).catch(reject);
+                })),
+            Promise.resolve<any>(undefined));
+
+        // Catch promise rejection. We are doing it on purpose from validation failure.
+        all.catch(() => { });
+    };
 }
 
 // Verify that the authentication is appropriate for a request
-export function validate(options?: Object): express.RequestHandler {
-    return null;
-    // This function generates middleware based on the options
-    // passed to it so that the requestee can utulize the
-    // middleware without making additinoal requests to the framework.
+// export function validate(options?: Object): express.RequestHandler {
+// return null;
+// This function generates middleware based on the options
+// passed to it so that the requestee can utulize the
+// middleware without making additinoal requests to the framework.
 
-    // The generated middleware will accomodate the options passed
-    // in when the function is called.
+// The generated middleware will accomodate the options passed
+// in when the function is called.
+// }
+
+export function validate(schema: any): (req: express.Request, res: express.Response, next: express.NextFunction) => void {
+    return (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        const path = req.route.path;
+        const method = req.method.toLowerCase();
+        const validators = schema[path][method];
+
+        if (!validators)
+            return next();
+
+        let errors: any[] = [];
+        const mapError = (type: string) => (err: RestError) => ({ in: type, message: err.message, path: err.path });
+        const clone = (obj: any) => JSON.parse(JSON.stringify(obj));
+        if (validators.body)
+            errors = errors.concat(validators.body.validate(clone(req.body)).map(mapError('body')));
+        if (validators.path)
+            errors = errors.concat(validators.path.validate(clone(req.params)).map(mapError('path')));
+        if (validators.query)
+            errors = errors.concat(validators.query.validate(clone(req.query)).map(mapError('query')));
+
+        if (errors.length > 0)
+            Response.fromErrors(ResponseType.InvalidParams, errors).send(res); // handled, don't call "next()"
+        else
+            next();
+    };
 }
 
 // reference: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
@@ -83,6 +151,14 @@ export class Response {
     // 304
     public static fromConflict(conflict: ResponseValue) {
         return new this(ResponseType.Conflict, conflict);
+    }
+
+    public static fromError(responseType: ResponseType, error: RestError) {
+        return new this(responseType, undefined, [error]);
+    }
+
+    public static fromErrors(responseType: ResponseType, errors: RestError[]) {
+        return new this(responseType, undefined, errors);
     }
 
     // Some other atypical method response
