@@ -18,8 +18,13 @@ const pack = require('./package.json');
 // const exec = require('child_process').exec;
 
 gulp.task('debug', 'Run the project and auto-restart for changes', function (project, debug) {
+<<<<<<< HEAD
     debug = debug || process.env.DEBUG || `${pack.name}:*`;
     console.log(`>> debug weather-stats application with DEBUG=${debug}`);
+=======
+    debug = debug || `${pack.name}:*`;
+    console.log(`>> debug ${pack.name} application with DEBUG=${debug}`);
+>>>>>>> auth-endpoints
     G$.nodemon({
 
         script: `index.js`,

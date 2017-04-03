@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
@@ -5,6 +6,11 @@ const bodyParser = require('body-parser');
 const router = express.Router();
 const init = require('./lib/utils').init;      // load environment variables
 const debug = require('debug')('holdmybeer:app')
+const cors = require('cors');
+const app = express();
+
+// enable CORS
+app.use(cors());
 
 function start() {
   debug('loading..')
@@ -17,8 +23,6 @@ function start() {
       }).catch(error => { throw error });
   });
 }
-
-
 
 function loadApplication() {
   const routes = require('./lib/routes');   // load file dependencies
