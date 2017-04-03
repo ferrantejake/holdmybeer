@@ -1,8 +1,11 @@
 import * as cryptoLib from './cryptoLib';
+import { dq } from '../components';
 // import { dq } from '../components';
 
-const SESSION_CODE_CHARS = cryptoLib.AUTH_CODE_CHARS;
-const SESSION_TOKEN_LENGTH = 16;
+const SESSION_CODE_CHARS = cryptoLib.SESSION_CODE_CHARS;
+const SESSION_CODE_LENGTH = 16;
+const AUTH_CODE_CHARS = cryptoLib.AUTH_CODE_CHARS
+const AUTH_CODE_LENGTH = 24;
 
 /**
  * Create a new token.
@@ -15,6 +18,7 @@ export function create(code?: string): Promise<any> {
 
     // Should return an authToken record
     return new Promise<any>((resolve, reject) => {
+
         // generate session token code
         // create new session token using session token code
         // resolve authtoken record
@@ -35,5 +39,9 @@ export function whitelist(user: any, authToken: any) {
 
 // Generate a code for a session token
 export function generateSessionCode(): Promise<String> {
-    return cryptoLib.generateSecureCode(SESSION_CODE_CHARS, SESSION_TOKEN_LENGTH);
+    return cryptoLib.generateSecureCode(SESSION_CODE_CHARS, SESSION_CODE_LENGTH);
+}
+
+function generateAuthTokenCode(): Promise<String> {
+    return cryptoLib.generateSecureCode(AUTH_CODE_CHARS, AUTH_CODE_LENGTH)
 }

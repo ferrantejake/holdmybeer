@@ -10,8 +10,20 @@ const PASSWORD_HASH_ITERATIONS = 100000;
 const PASSWORD_HASH_SIZE = 512;
 const PASSWORD_ENCODING = 'base64';
 const AUTH_CODE_LENGTH = 64;
-export const SHORT_CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ2345679';
-export const AUTH_CODE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890+/'; // base 64
+export const charSets = {
+    ALPHA: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+    alpha: 'abcdefghijklmnopqrstuvwxyz',
+    numeric: '0123456789',
+    urlSafeSpecial: '/+',
+    nonUrlSafeSpecial: '',
+};
+export const SHORT_CODE_CHARS = charsetGenerator(charSets.ALPHA, charSets.numeric);
+export const AUTH_CODE_CHARS = charsetGenerator(charSets.ALPHA, charSets.alpha, charSets.numeric, charSets.urlSafeSpecial);
+export const SESSION_CODE_CHARS = AUTH_CODE_CHARS;
+
+export function charsetGenerator(...args: any[]): string {
+    return args.reduce((acc: string, current: string) => { `${acc}${current}` }, '');
+};
 
 /**
  * Generates a psuedo-random string with passed base of size length
