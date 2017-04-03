@@ -16,12 +16,19 @@ export function create(code?: string): Promise<any> {
     // are authorization tokens. For this reason, the parameters are
     // optional as we can make global constants to address tis commonality.
 
-    // Should return an authToken record
     return new Promise<any>((resolve, reject) => {
-
         // generate session token code
         // create new session token using session token code
         // resolve authtoken record
+        generateAuthTokenCode()
+            .then(code => {
+                return dq.tokens.insert({
+                    createdAt: new Date(Date.now()),
+                    type: dq.TokenType.Auth
+                });
+            })
+            .then(resolve)
+            .catch(reject);
     });
 }
 
