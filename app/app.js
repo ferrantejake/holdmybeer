@@ -4,7 +4,11 @@ const routes          = require('./lib/routes');
 const cookieParser    = require('cookie-parser');
 const bodyParser      = require('body-parser');
 const router          = express.Router();
+const cors            = require('cors');
 const app             = express();
+
+// enable CORS
+app.use(cors());
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
