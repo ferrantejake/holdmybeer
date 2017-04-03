@@ -11,7 +11,7 @@ export interface User extends Document {
     nick: string;
 };
 
-export class UserDq extends DataQueries<User> {
+export default class UserDq extends DataQueries<User> {
     public constructor() {
         super('holdmybeer_users');
     }

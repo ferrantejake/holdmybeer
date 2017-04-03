@@ -4,7 +4,7 @@ interface Drink extends Document {
 
 }
 
-export class DrinkDq extends DataQueries<Drink> {
+export default class DrinkDq extends DataQueries<Drink> {
     public constructor() {
         super('holdmybeer_drinks');
     }

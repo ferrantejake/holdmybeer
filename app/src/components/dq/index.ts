@@ -1,13 +1,14 @@
 // Import data query Interfaces
-import { DrinkDq } from './queries/DrinkDq';
-import { TokenDq } from './queries/TokenDq';
-import { UserDq } from './queries/UserDq';
+import DrinkDq from './queries/DrinkDq';
+import TokenDq from './queries/TokenDq';
+import UserDq from './queries/UserDq';
 
-const dq = {
-    users: new UserDq(),
-    drinks: new DrinkDq(),
-    tokens: new TokenDq()
-};
+// Export all other resources
+export * from './queries/DrinkDq';
+export * from './queries/TokenDq';
+export * from './queries/UserDq';
 
 // Export data query interfaces
-export { dq }
+export const users = new UserDq();
+export const drinks = new DrinkDq();
+export const tokens = new TokenDq();

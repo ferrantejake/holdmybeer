@@ -20,7 +20,7 @@ export interface SelectResult<T> { success: boolean; value: T[]; }
 export interface FindAndUpdateResult<T> { success: boolean; value: T; isModified: boolean; updatedExisting: boolean; upserted: any; }
 /** Represents the expected response from an insert */
 
-export interface InsertResult { success: boolean; isModified: boolean; }
+export interface InsertResult { success: boolean; isModified: boolean, record: any }
 /** Represents the expected response from an update */
 export interface UpdateResult { success: boolean; count: number; isModified: boolean; }
 
@@ -128,10 +128,10 @@ export abstract class DataQueries<T extends Document> {
             this.mapForInsert(record);
             const options = { ConditionExpression: 'attribute_not_exists(id)' };
             this.table.insert(record, options)
-                .then(() => resolve({ success: true, isModified: true }))
+                .then(() => resolve({ success: true, isModified: true, record }))
                 .catch((error: Error) => {
                     if (error && error.message === 'The conditional request failed')
-                        return resolve({ success: true, isModified: false });
+                        return resolve({ success: true, isModified: false, record });
                     else reject(error);
                 });
         });
@@ -179,7 +179,7 @@ export abstract class DataQueries<T extends Document> {
             this.table.update(id, fields, options)
                 .then((response: any) => {
                     const stats = this.updateStats(response, fields);
-                    resolve({ success: true, count: stats.count, isModified: stats.isModified });
+                    resolve({ success: true, count: stats.count, isModified: stats.isModified, record });
                 })
                 .catch((error: Error) => {
                     if (error && error.message === 'The conditional request failed')
