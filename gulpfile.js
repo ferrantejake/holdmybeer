@@ -1,93 +1,51 @@
-'use strict';
+var gulp = require('gulp');
+var gutil = require('gulp-util');
+var bower = require('bower');
+var concat = require('gulp-concat');
+var sass = require('gulp-sass');
+var minifyCss = require('gulp-minify-css');
+var rename = require('gulp-rename');
+var sh = require('shelljs');
 
-const gulp = require('gulp-help')(require('gulp-param')(require('gulp'), process.argv));
-// const async = require('async');
-const del = require('del');
-const merge = require('merge2');
-// const path = require('path');
+var paths = {
+  sass: ['./scss/**/*.scss']
+};
 
-// load gulp plugins
-const G$ = require('gulp-load-plugins')({ lazy: true });
+gulp.task('default', ['sass']);
 
-// load settings
-const settings = require('./gulp.json');
-const tsconfig = require('./tsconfig.json');
-let tsProject = undefined;
-const pack = require('./package.json');
+gulp.task('sass', function(done) {
+  gulp.src('./scss/ionic.app.scss')
+    .pipe(sass())
+    .on('error', sass.logError)
+    .pipe(gulp.dest('./www/css/'))
+    .pipe(minifyCss({
+      keepSpecialComments: 0
+    }))
+    .pipe(rename({ extname: '.min.css' }))
+    .pipe(gulp.dest('./www/css/'))
+    .on('end', done);
+});
 
-// const exec = require('child_process').exec;
+gulp.task('watch', ['sass'], function() {
+  gulp.watch(paths.sass, ['sass']);
+});
 
-gulp.task('debug', 'Run the project and auto-restart for changes', function (project, debug) {
-    debug = debug || `${pack.name}:*`;
-    console.log(`>> debug weather-stats application with DEBUG=${debug}`);
-    G$.nodemon({
-
-        script: `index.js`,
-        ext: 'js',
-        env: {
-            NODE_ENV: 'development',
-            DEBUG: debug
-        },
-        delay: 1, // Sec
-        watch: `app`,
-        ignore: `app/src`
+gulp.task('install', ['git-check'], function() {
+  return bower.commands.install()
+    .on('log', function(data) {
+      gutil.log('bower', gutil.colors.cyan(data.id), data.message);
     });
-}, {
-        options: {  
-            project: `Project name: weather-stats`
-        }
-    });
-
-
-// Building
-
-gulp.task('build', 'Compiles all TypeScript source files and updates module references', function (callback) {
-    G$.sequence(['tslint', 'clean'], 'typescript', callback);
 });
 
-// Watching
-
-gulp.task('watch', 'Contiuous build', ['build'], function () {
-    gulp.watch(settings.watchfiles, ['tslint', `typescript`]);
-});
-
-// Cleaning
-
-gulp.task('clean', 'Cleans the generated files from lib directory', function () {
-    return del((settings.dest), { dot: true });
-});
-
-// Transpiling
-
-gulp.task(`typescript`, `Transpile typescript files`, function () {
-    tsProject = G$.typescript.createProject(tsconfig.compilerOptions);
-    const tsResult = gulp.src(settings.tsfiles)
-        .pipe(G$.sourcemaps.init())
-        .pipe(tsProject());
-    const dest = settings.dest;
-    return merge([
-        // .d.ts files
-        tsResult.dts.pipe(gulp.dest(dest)),
-        // .js files + sourcemaps
-        settings.inlineSourcemaps ?
-            tsResult.js
-                .pipe(G$.sourcemaps.write()) // inline sourcemaps
-                .pipe(gulp.dest(dest)) :
-            tsResult.js
-                .pipe(G$.sourcemaps.write('.')) // separate .js.map files
-                .pipe(gulp.dest(dest)),
-        // all other files
-        gulp.src(settings.resources).pipe(gulp.dest(dest))
-    ]);
-});
-
-// see https://www.npmjs.com/package/tslint
-gulp.task('tslint', 'Lints all TypeScript source files', function () {
-    return gulp.src(settings.tsfiles)
-        .pipe(G$.tslint({
-            formatter: 'verbose'
-        }))
-        .pipe(G$.tslint.report({
-            emitError: false
-        }));
+gulp.task('git-check', function(done) {
+  if (!sh.which('git')) {
+    console.log(
+      '  ' + gutil.colors.red('Git is not installed.'),
+      '\n  Git, the version control system, is required to download Ionic.',
+      '\n  Download git here:', gutil.colors.cyan('http://git-scm.com/downloads') + '.',
+      '\n  Once git is installed, run \'' + gutil.colors.cyan('gulp install') + '\' again.'
+    );
+    process.exit(1);
+  }
+  done();
 });

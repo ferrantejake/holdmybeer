@@ -1,2 +1,0 @@
-const index = {};
-exports = index;
