@@ -15,13 +15,13 @@ const validate = rest.validate(paramOptions);
 const respond = rest.respond(debug);
 
 router.route('/status')
-    .get(verify, validate, respond(accountStatus));
+    .get(accountStatus);
 router.route('/session')
-    .get(verify, validate, respond(session));
+    .get(respond(session));
 router.route('/login')
-    .get(verify, validate, respond(login));
+    .get(respond(login));
 router.route('/logout')
-    .get(verify, validate, respond(logout));
+    .get(respond(logout));
 
 // Request a new device authentication session.
 function session(req: express.Request, res: express.Response): Promise<rest.Response> {
