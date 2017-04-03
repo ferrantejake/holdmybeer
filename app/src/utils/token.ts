@@ -4,7 +4,7 @@ import { dq } from '../components';
 
 const SESSION_CODE_CHARS = cryptoLib.SESSION_CODE_CHARS;
 const SESSION_CODE_LENGTH = 16;
-const AUTH_CODE_CHARS = cryptoLib.AUTH_CODE_CHARS
+const AUTH_CODE_CHARS = cryptoLib.AUTH_CODE_CHARS;
 const AUTH_CODE_LENGTH = 24;
 
 /**
@@ -50,5 +50,5 @@ export function generateSessionCode(): Promise<String> {
 }
 
 function generateAuthTokenCode(): Promise<String> {
-    return cryptoLib.generateSecureCode(AUTH_CODE_CHARS, AUTH_CODE_LENGTH)
+    return cryptoLib.generateSecureCode(AUTH_CODE_CHARS, AUTH_CODE_LENGTH);
 }

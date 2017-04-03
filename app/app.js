@@ -3,16 +3,12 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const router = express.Router();
-const init = require('./lib/utils').init;      // load environment variables
+const init = require('./lib/init');      // Load environment variables
 const debug = require('debug')('holdmybeer:app')
 const cors = require('cors');
-const app = express();
-
-// enable CORS
-app.use(cors());
 
 function start() {
-  debug('loading..')
+  debug('Loading application dependencies..')
   return new Promise((resolve, reject) => {
     init.load()
       .then(() => {
@@ -24,8 +20,10 @@ function start() {
 }
 
 function loadApplication() {
-  const routes = require('./lib/routes');   // load file dependencies
-  const app = express();                  // create app
+  debug('Loading application..')
+  const app = express();                    // Create app
+  app.use(cors());                          // Enable CORS
+  const routes = require('./lib/routes');   // Load file dependencies
 
   // view engine setup
   app.set('views', path.join(__dirname, 'views'));
