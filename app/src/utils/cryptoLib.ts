@@ -22,7 +22,7 @@ export const AUTH_CODE_CHARS = charsetGenerator(charSets.ALPHA, charSets.alpha, 
 export const SESSION_CODE_CHARS = AUTH_CODE_CHARS;
 
 export function charsetGenerator(...args: any[]): string {
-    return args.reduce((acc: string, current: string) => { `${acc}${current}`; }, '');
+    return args.reduce((acc: string, current: string) => { return `${acc}${current}`; }, '');
 };
 
 /**
