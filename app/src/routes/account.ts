@@ -26,12 +26,8 @@ router.route('/logout')
 // Request a new device authentication session.
 function session(req: express.Request, res: express.Response): Promise<rest.Response> {
     return new Promise<rest.Response>((resolve, reject) => {
-
-        // Create new token
-        // Repond with token code
-
-        // token.create()
-        //     .then(sessionToken => res.json({ token: sessionToken }));
+        token.create()
+            .then(tokenRecord => resolve(rest.Response.fromSuccess(tokenRecord)));
     });
 }
 
