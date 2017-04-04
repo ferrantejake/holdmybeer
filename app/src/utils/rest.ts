@@ -108,7 +108,7 @@ export interface RestError {
     path: string;
     message?: string;
 }
-declare type ResponseValue = string | number;
+declare type ResponseValue = any;
 
 export class Response {
 
