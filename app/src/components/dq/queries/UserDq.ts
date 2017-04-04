@@ -18,7 +18,7 @@ export default class UserDq extends DataQueries<User> {
 
     // Alters the record being inserted to fit the structure of the expected data.
     protected mapForInsert(record: User) {
-        this.formatCreatedAt(record);
+        this.mapCreatedAt(record);
         delete record.id;
         debug('mapped value', record, typeof record.createdAt);
     }
@@ -26,16 +26,16 @@ export default class UserDq extends DataQueries<User> {
     // Does nothing. Overridden to prevent accidental usage with parent class.
     protected formatId(record: User) { }
 
-    public insert(record: User): Promise<Queries.InsertResult> {
-        return new Promise<Queries.InsertResult>((resolve, reject) => {
-            this.mapForInsert(record);
+    public insert(record: User): Promise<User> {
+        return new Promise<User>((resolve, reject) => {
+            const mappedRecord = this.mapForInsert(record);
             const options = { ConditionExpression: `attribute_not_exists(username)` };
-            this.table.insert(record, options)
-                .then(() => resolve({ success: true, isModified: true } as Queries.InsertResult))
+            this.table.insert(mappedRecord, options)
+                .then(() => resolve(this.unmapRecord(mappedRecord)))
                 .catch((error: Error) => {
                     if (error && error.message === 'The conditional request failed')
-                        return resolve({ success: true, isModified: false } as Queries.InsertResult);
-                    else resolve({ success: false, isModified: false } as Queries.InsertResult);
+                        return resolve(this.unmapRecord(mappedRecord));
+                    else reject(error);
                 });
         });
     };

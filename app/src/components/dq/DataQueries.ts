@@ -52,36 +52,6 @@ export abstract class DataQueries<T extends Document> {
         debugV('instantiating table:', tableName);
         this.table = aws.dynamodb().table(tableName);
     }
-    /*
-     * Creates a mapped version of the record using the specified fields.
-     * @param {T} record The record to map.
-     * @param {string[]} Fields the fields to use in the mapping.
-     * @param {TransformMap<T>} [map] a map of transformations to apply to the field during mapping.
-     */
-    public static mapRecord<T extends Document>(record: T, fields: string[], map?: TransformMap<T>): { readonly [P in keyof T]?: T[P]} {
-        return Object.freeze(
-            fields.reduce((prev: any, cur: string) => {
-                if (!map || !map.hasOwnProperty(cur)) {
-                    // Direct map
-                    prev[cur] = record[cur];
-                }
-                else {
-                    // Apply a transform/map
-                    const mapKey = map[cur];
-                    if (typeof mapKey === 'string') {
-                        // Mapping sans transform
-                        prev[mapKey] = record[cur];
-                    }
-                    else if (((map: KeyedTransform<T> | Transform<T>): map is KeyedTransform<T> => map.hasOwnProperty('key'))(mapKey)) {
-                        // Keyed transform; use IIFE to avoid making a user-defined type guard function *just* for TypeScript
-                        prev[mapKey.key] = mapKey.transform(record);
-                    }
-                    else
-                        prev[cur] = mapKey(record);
-                }
-                return prev;
-            }, {}));
-    }
 
     // Create and return UUID.
     private createUUID(): string {
@@ -90,48 +60,62 @@ export abstract class DataQueries<T extends Document> {
     }
 
     // Alters the record being inserted to fit the structure of the expected data.
-    protected mapForInsert(record: T) {
-        this.formatId(record);
-        this.formatCreatedAt(record);
+    protected mapForInsert(record: T): any {
+        const mapped = Object.assign(record);
+        this.formatId(mapped);
+        this.mapCreatedAt(mapped);
+        return mapped;
     }
 
     // Alters the record being inserted to fit the structure of the expected data.
     // Removes fields which will always conflict
-    protected mapForUpdate(record: T) {
+    protected mapForUpdate(record: T): T {
         delete record.id;
         delete record.createdAt;
+        return record;
     }
 
     protected unmapRecord(record: any): T {
+        this.unmapCreatedAt(record);
         return record;
     }
 
     protected formatId(record: T) {
+        debug('formatId:', record);
         if (!record) return;
         if (!record.id) record.id = this.createUUID();
     }
 
-    protected formatCreatedAt(record: T) {
+    protected mapCreatedAt(record: T) {
         if (!record) return;
         if (!record.createdAt || !(typeof record.createdAt === 'string'))
             record.createdAt = new Date(Date.now()).toISOString() as any;
     }
 
+    // Map date string to Date object
+    protected unmapCreatedAt(record: T) {
+        // If record dne or record.createdAt dne, then do nothing
+        if (!(record || record.createdAt))
+            try { record.createdAt = new Date(record.createdAt); }
+            catch (error) { throw error; }
+    }
+
     // Insert a document
-    public insert(record: T): Promise<InsertResult> {
+    public insert(record: T): Promise<T> {
         // There are 3 potential outcomes to an insert:
         // 1: Insert successfull:   success:true, isModified:true
         // 2: Record exists:        success:true, isModified:false
         // 3: Insert failure:       reject, error
 
-        return new Promise<InsertResult>((resolve, reject) => {
-            this.mapForInsert(record);
+        return new Promise<T>((resolve, reject) => {
+            const insertableRecord = this.mapForInsert(record);
             const options = { ConditionExpression: 'attribute_not_exists(id)' };
-            this.table.insert(record, options)
-                .then(() => resolve({ success: true, isModified: true, record }))
+            this.table.insert(insertableRecord, options)
+                .then((response: any) => { console.log(insertableRecord, response); resolve(response); })
                 .catch((error: Error) => {
+                    // Record already exists, is not modified
                     if (error && error.message === 'The conditional request failed')
-                        return resolve({ success: true, isModified: false, record });
+                        return resolve(this.unmapRecord(insertableRecord));
                     else reject(error);
                 });
         });
