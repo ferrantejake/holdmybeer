@@ -68,10 +68,15 @@ export abstract class DataQueries<T extends Document> {
     }
 
     // Alters the record being inserted to fit the structure of the expected data.
-    // Removes fields which will always conflict
+    // Removes fields which will always conflict.
     protected mapForUpdate(record: T): T {
         delete record.id;
         delete record.createdAt;
+        return record;
+    }
+
+    // Map a record to a consumable form, i.e. for a user-facing interface.
+    protected mapForConsumable(record: T): T {
         return record;
     }
 
@@ -92,9 +97,9 @@ export abstract class DataQueries<T extends Document> {
             record.createdAt = new Date(Date.now()).toISOString() as any;
     }
 
-    // Map date string to Date object
+    // Map date string to Date object.
     protected unmapCreatedAt(record: T) {
-        // If record dne or record.createdAt dne, then do nothing
+        // If record dne or record.createdAt dne, then do nothing.
         if (!(record || record.createdAt))
             try { record.createdAt = new Date(record.createdAt); }
             catch (error) { throw error; }
