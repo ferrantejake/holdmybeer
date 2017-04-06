@@ -278,10 +278,10 @@ export function getContext(req: express.Request): Promise<RequestContext> {
         // Accept Authorization or auithorization header
         const token = req.get('Authorization') || req.get('authorization');
         dq.tokens.getById(token).then(tokenRecord => {
-            if (!tokenRecord) return reject(new Error('Invalid token'));
+            if (!tokenRecord) return resolve({});
             const accountId = tokenRecord.ownerId;
             dq.users.getById(accountId).then(userRecord => {
-                if (!userRecord) return reject(new Error('Invalid token'));
+                if (!userRecord) return resolve({ token: tokenRecord });
                 resolve({
                     token: tokenRecord,
                     user: userRecord
