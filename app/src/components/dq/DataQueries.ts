@@ -76,7 +76,7 @@ export abstract class DataQueries<T extends Document> {
     }
 
     // Map a record to a consumable form, i.e. for a user-facing interface.
-    protected mapForConsumable(record: T): T {
+    protected mapToConsumable(record: T): T {
         return record;
     }
 

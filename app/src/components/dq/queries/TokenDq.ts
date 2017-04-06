@@ -14,7 +14,6 @@ export interface Token extends Document {
     publicContext?: Object;
     description?: string;
     expires?: Date;
-    testTag?: string;
     ttl?: number;
 }
 
@@ -35,6 +34,16 @@ export default class TokenDq extends DataQueries<Token> {
         return mapped;
     }
 
+    protected mapToConsumable(record: Token): Token {
+        const mapped = Object.assign(record,
+            {
+                context: record.publicContext,
+                publicContext: undefined,
+                type: TokenType[record.token],
+
+            });
+        return mapped;
+    }
     // Does nothing. Overridden to prevent accidental usage with parent class.
     // protected formatId(record: Token) { }
 
