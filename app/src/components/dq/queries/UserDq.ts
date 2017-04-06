@@ -23,6 +23,10 @@ export default class UserDq extends DataQueries<User> {
         debug('mapped value', record, typeof record.createdAt);
     }
 
+    public static mapToConsumable(record: User): User {
+        return record;
+    }
+
     // Does nothing. Overridden to prevent accidental usage with parent class.
     protected formatId(record: User) { }
 
