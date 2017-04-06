@@ -46,7 +46,9 @@ function accountStatus(req: express.Request, res: express.Response): Promise<res
 
 // Log into an account using an authorization provider.
 function login(req: express.Request, res: express.Response): Promise<rest.Response> {
-    return new Promise<rest.Response>((resolve, reject) => { });
+    return new Promise<rest.Response>((resolve, reject) => {
+
+    });
 }
 
 // Log out of an account.
