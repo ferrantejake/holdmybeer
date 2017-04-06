@@ -34,7 +34,7 @@ export default class TokenDq extends DataQueries<Token> {
         return mapped;
     }
 
-    protected mapToConsumable(record: Token): Token {
+    protected static mapToConsumable(record: Token): Token {
         const mapped = Object.assign(record,
             {
                 context: record.publicContext,
