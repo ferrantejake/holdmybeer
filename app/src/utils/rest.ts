@@ -130,7 +130,7 @@ export class Response {
     }
 
     // 404
-    public static fromNotFound(value: ResponseValue) {
+    public static fromNotFound(value: RestError) {
         return new this(ResponseType.NotFound, value);
     }
 
