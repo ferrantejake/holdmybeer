@@ -8,6 +8,9 @@ export * from './queries/DrinkDq';
 export * from './queries/TokenDq';
 export * from './queries/UserDq';
 
+// Export class interfaces
+export { DrinkDq, TokenDq, UserDq };
+
 // Export data query interfaces
 export const users = new UserDq();
 export const drinks = new DrinkDq();
