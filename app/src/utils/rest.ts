@@ -1,5 +1,6 @@
 import * as express from 'express';
 import STATUS = require('http-status');
+import { dq } from '../components';
 
 // Verify that the request structure is appropriate.
 export function verify(schema: any) {
@@ -265,4 +266,27 @@ export function respond(debug: any) {
                         debug('ERROR', req.path, error.stack);
                     res.sendStatus(STATUS.INTERNAL_SERVER_ERROR);
                 });
+}
+
+// Gets the context of the user or entity requesting information, if availiable.
+export interface RequestContext {
+    token?: dq.Token;
+    user?: dq.User;
+}
+export function getContext(req: express.Request): Promise<RequestContext> {
+    return new Promise<RequestContext>((resolve, reject) => {
+        // Accept Authorization or auithorization header
+        const token = req.get('Authorization') || req.get('authorization');
+        dq.tokens.getById(token).then(tokenRecord => {
+            if (!tokenRecord) return reject(new Error('Invalid token'));
+            const accountId = tokenRecord.ownerId;
+            dq.users.getById(accountId).then(userRecord => {
+                if (!userRecord) return reject(new Error('Invalid token'));
+                resolve({
+                    token: tokenRecord,
+                    user: userRecord
+                });
+            }).catch(reject);
+        }).catch(reject);
+    });
 }
