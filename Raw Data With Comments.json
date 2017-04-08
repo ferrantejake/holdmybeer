@@ -1,0 +1,72 @@
+{
+  "status" : "success",
+  "numberOfPages" : 225,
+  "data" : [
+    {
+      "servingTemperatureDisplay" : "",
+      "labels" : {
+        "medium" : "http://s3.amazonaws.com/",
+        "large" : "http://s3.amazonaws.com/",
+        "icon" : "http://s3.amazonaws.com/"
+      },
+      "style" : {
+        "id" : 15,                                  // category
+        "category" : {                              // <                              
+          "updateDate" : "",     
+          "id" : 5,                                 // <    
+          "description" : "",                       // category description?              
+          "createDate" : "2012-01-02 11:50:42",                                   
+          "name" : "Bock"                           // category of drink 
+        },
+        "description" : "",                         // style description?
+        "ibuMax" : "27",                            // international bitterness unit max (style)
+        "ibuMin" : "20",                            // international bitterness unit min (style)
+        "srmMin" : "14",                            //
+        "srmMax" : "22",                            //
+        "ogMax" : "1.072",
+        "fgMin" : "1.013",
+        "fgMax" : "1.019",
+        "createDate" : "2012-01-02 11:50:42",
+        "updateDate" : "",
+        "abvMax" : "7.2",                           // alcohol by volume max (style)
+        "ogMin" : "1.064",
+        "abvMin" : "6.3",                           // alcohol by volume min (style)
+        "name" : "Traditional Bock",                // style name
+        "categoryId" : 5                            // important
+      },
+      "status" : "verified",
+      "srmId" : "",                                 //
+      "beerVariationId" : "",
+      "statusDisplay" : "Verified",
+      "foodPairings" : "",
+      "srm" : [],                                   //
+      "updateDate" : "",
+      "servingTemperature" : "",                    
+      "availableId" : 1,                            
+      "beerVariation" : [],                         // <<
+      "abv" : "6",                                  // alcohol by volume
+      "year" : "",
+      "name" : "\"My\" Bock",                       // Beer name
+      "id" : "HXKxpc",
+      "originalGravity" : "",                       // <
+      "styleId" : 15,                               // <
+      "ibu" : "",                                   // international bitter unit (single beer)
+      "glasswareId" : 5,
+      "isOrganic" : "N",                            // < important
+      "createDate" : "2012-01-02 11:51:13",
+      "available" : {                                               // <
+        "description" : "Available year round as a staple beer.",   // <
+        "name" : "Year Round"                                       // <
+      },
+      "glass" : {
+        "updateDate" : "",
+        "id" : 5,
+        "description" : "",
+        "createDate" : "2012-01-02 11:50:42",
+        "name" : "Pint"
+      },
+      "description" : "Amber, malty and not too heavy, all around favorite even for the drinkers of the yellow fizzy stuff" // yes
+    }
+  ],
+  "currentPage" : 1
+}
