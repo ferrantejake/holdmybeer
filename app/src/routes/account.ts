@@ -14,6 +14,7 @@ const paramOptions = {
 const verify = rest.verify(paramOptions);
 const validate = rest.validate(paramOptions);
 const respond = rest.respond(debug);
+const notAllowed = rest.notAllowed(undefined);
 const getContext = rest.getContext;
 // const getContext: any = undefined; // rest.getContext;
 
