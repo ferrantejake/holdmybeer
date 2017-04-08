@@ -1,6 +1,6 @@
 /** Interface representing minimum document requirements. */
 export interface Document {
     id?: string;
-    createdAt: Date;
+    createdAt?: Date;
     [k: string]: any;
 }

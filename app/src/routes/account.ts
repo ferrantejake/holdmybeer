@@ -1,4 +1,5 @@
 import { cryptoLib, rest, token } from '../utils';
+import { dq } from '../components';
 import * as express from 'express';
 const router = express.Router();
 const debug = require('debug')('holdmybeer:auth');
@@ -13,6 +14,7 @@ const paramOptions = {
 const verify = rest.verify(paramOptions);
 const validate = rest.validate(paramOptions);
 const respond = rest.respond(debug);
+const getContext: any = undefined; // rest.getContext;
 
 router.route('/status')
     .get(accountStatus);
@@ -22,6 +24,8 @@ router.route('/login')
     .get(respond(login));
 router.route('/logout')
     .get(respond(logout));
+router.route('/log')
+    .get(respond(accountLog));
 
 // Request a new device authentication session.
 function session(req: express.Request, res: express.Response): Promise<rest.Response> {
@@ -44,4 +48,15 @@ function login(req: express.Request, res: express.Response): Promise<rest.Respon
 // Log out of an account.
 function logout(req: express.Request, res: express.Response): Promise<rest.Response> {
     return new Promise<rest.Response>((resolve, reject) => { });
+}
+
+// View account log.
+function accountLog(req: express.Request, res: express.Response): Promise<rest.Response> {
+    return new Promise<rest.Response>((resolve, reject) => {
+        const user = getContext(req).user as dq.User;
+
+        dq.beerlogs.getByOwner(user.id)
+            .then(records => { resolve(rest.Response.fromSuccess({ items: records.map(dq.beerlogs.mapToConsumable) })); })
+            .catch(error => { rest.Response.fromServerError(error); });
+    });
 }
