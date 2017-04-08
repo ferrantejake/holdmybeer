@@ -97,15 +97,3 @@ function logout(req: express.Request, res: express.Response): Promise<rest.Respo
         });
     });
 }
-
-// View account log.
-function accountLog(req: express.Request, res: express.Response): Promise<rest.Response> {
-    return new Promise<rest.Response>((resolve, reject) => {
-        getContext(req).then(requestContext => {
-            const user = requestContext.user;
-            dq.beerlogs.getByOwner(user.id)
-                .then(records => { resolve(rest.Response.fromSuccess({ items: records.map(dq.beerlogs.mapToConsumable) })); })
-                .catch(error => { rest.Response.fromServerError(error); });
-        });
-    });
-}

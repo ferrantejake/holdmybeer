@@ -15,10 +15,13 @@ const verify = rest.verify(paramOptions);
 const validate = rest.validate(paramOptions);
 const respond = rest.respond(debug);
 const notAllowed = rest.notAllowed(undefined);
-const getContext: any = undefined; // rest.getContext
+const getContext = rest.getContext;
 
 router.route('/')
     .get(undefined)
+    .all(notAllowed);
+router.route('/log')
+    .get(respond(accountLog))
     .all(notAllowed);
 router.route('/:uid')
     .get(respond(getBeer))
@@ -43,18 +46,32 @@ function getBeer(req: express.Request, res: express.Response): Promise<rest.Resp
 
 function updateBeerLog(req: express.Request, res: express.Response): Promise<rest.Response> {
     return new Promise<rest.Response>((resolve, reject) => {
-        const user = getContext(req).user as dq.User;
-        const beerId = req.params.uid;
-        const rating = req.body.rating;
-        const geo = req.body.geo;
-        // const keywords = req.body.keywords
+        getContext(req).then(requestContext => {
+            const user = requestContext.user as dq.User;
+            const beerId = req.params.uid;
+            const rating = req.body.rating;
+            const geo = req.body.geo;
+            // const keywords = req.body.keywords
 
-        dq.beerlogs.insert({
-            geo,
-            ownerId: user.id,
-            drinkId: beerId,
-        })
-            .then(beerLog => resolve(rest.Response.fromSuccess(undefined)))
-            .catch(error => reject(rest.Response.fromServerError(error)));
+            dq.beerlogs.insert({
+                geo,
+                ownerId: user.id,
+                drinkId: beerId,
+            })
+                .then(beerLog => resolve(rest.Response.fromSuccess(undefined)))
+                .catch(error => reject(rest.Response.fromServerError(error)));
+        });
+    });
+}
+
+// View account log.
+function accountLog(req: express.Request, res: express.Response): Promise<rest.Response> {
+    return new Promise<rest.Response>((resolve, reject) => {
+        getContext(req).then(requestContext => {
+            const user = requestContext.user;
+            dq.beerlogs.getByOwner(user.id)
+                .then(records => { resolve(rest.Response.fromSuccess({ items: records.map(dq.beerlogs.mapToConsumable) })); })
+                .catch(error => { rest.Response.fromServerError(error); });
+        });
     });
 }
