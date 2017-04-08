@@ -18,17 +18,23 @@ const getContext = rest.getContext;
 // const getContext: any = undefined; // rest.getContext;
 
 router.route('/status')
-    .get(accountStatus);
+    .get(accountStatus)
+    .all(notAllowed);
 router.route('/session')
-    .get(respond(session));
+    .get(respond(session))
+    .all(notAllowed);
 router.route('/login')
-    .get(respond(login));
+    .get(respond(login))
+    .all(notAllowed);
 router.route('/verify')
-    .get(respond(loginVerification));
+    .get(respond(loginVerification))
+    .all(notAllowed);
 router.route('/logout')
-    .get(respond(logout));
+    .get(respond(logout))
+    .all(notAllowed);
 router.route('/log')
-    .get(respond(accountLog));
+    .get(respond(accountLog))
+    .all(notAllowed);
 
 // Request a new device authentication session.
 function session(req: express.Request, res: express.Response): Promise<rest.Response> {

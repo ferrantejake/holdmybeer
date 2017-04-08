@@ -19,6 +19,7 @@ const getContext: any = undefined; // rest.getContext
 
 router.route('/')
     .get(undefined);
+    .all(notAllowed);
 router.route('/:uid')
     .get(respond(getBeer))
     .put(respond(updateBeerLog))
