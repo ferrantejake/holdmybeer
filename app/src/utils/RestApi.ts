@@ -1,5 +1,5 @@
 import * as express from 'express';
-import * as from from './rest';
+import * as  rest from './rest';
 import * as request from 'request';
 
 export enum Method {
