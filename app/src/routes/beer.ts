@@ -18,7 +18,7 @@ const notAllowed = rest.notAllowed(undefined);
 const getContext: any = undefined; // rest.getContext
 
 router.route('/')
-    .get(undefined);
+    .get(undefined)
     .all(notAllowed);
 router.route('/:uid')
     .get(respond(getBeer))
