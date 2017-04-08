@@ -48,7 +48,7 @@ function updateBeerLog(req: express.Request, res: express.Response): Promise<res
     return new Promise<rest.Response>((resolve, reject) => {
         getContext(req).then(requestContext => {
             const user = requestContext.user as dq.User;
-            const beerId = req.params.uid;
+            const beerId = req.params.id;
             const rating = req.body.rating;
             const geo = req.body.geo;
             // const keywords = req.body.keywords
