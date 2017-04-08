@@ -109,7 +109,7 @@ export abstract class DataQueries<T extends Document> {
 
         return new Promise<T>((resolve, reject) => {
             const insertableRecord = this.mapForInsert(record);
-            const options = { ConditionExpression: 'attribute_exists(id)' };
+            const options = { ConditionExpression: 'attribute_not_exists(id)' };
             this.table.insert(insertableRecord, options)
                 .then((response: any) => { console.log(insertableRecord, response); resolve(response); })
                 .catch((error: Error) => {
