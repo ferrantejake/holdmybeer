@@ -7,6 +7,7 @@ const pkg = require('../../../package.json');
 
 // Import endpoints from alternative routes.
 router.use('/account', require('./account'));
+router.use('/beer', require('./beer'));
 
 /* GET home page. */
 

@@ -152,6 +152,19 @@ export abstract class DataQueries<T extends Document> {
         });
     };
 
+    // Get documents by field name
+    public getByField(key: string, value: any): Promise<T[]> {
+        return new Promise<T[]>((resolve, reject) => {
+            const options = { ConditionExpression: 'attribute_exists(string)' /* and matches */ };
+            this.table.findBatch(options)
+                .then((response: any) => {
+                    console.log(response);
+                    resolve(response.map(this.unmapRecord));
+                })
+                .catch(reject);
+        });
+    };
+
     /**
      * Updates a record by the specified ID.
      * @param {string} id - The ID of the records.
