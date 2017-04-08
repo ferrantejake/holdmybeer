@@ -22,6 +22,8 @@ router.route('/session')
     .get(respond(session));
 router.route('/login')
     .get(respond(login));
+router.route('/verify')
+    .get(respond(loginVerification));
 router.route('/logout')
     .get(respond(logout));
 router.route('/log')
@@ -42,12 +44,43 @@ function accountStatus(req: express.Request, res: express.Response): Promise<res
 
 // Log into an account using an authorization provider.
 function login(req: express.Request, res: express.Response): Promise<rest.Response> {
-    return new Promise<rest.Response>((resolve, reject) => { });
+    return new Promise<rest.Response>((resolve, reject) => {
+
+        // if we make it here then the request was well formed.
+
+        // implement auth0 conduit.. environment variables.
+        // establish passport strategy using conduit..
+
+        // redirect user to auth0.
+        // create new session token from sessionID and store in database for later evaluation.
+
+        // if something went wrong, then respond with the appropriate error.
+    });
+}
+
+// Validate response from Auth0 and handle token
+function loginVerification(req: express.Request, res: express.Response): Promise<rest.Response> {
+    return new Promise<rest.Response>((resolve, reject) => {
+        // if we make it here, then the response is necessarily well formed.
+        // normally we would validate the but because this is an untrusted anon source with whom we
+        // will just outright trust, we will ignore this.
+        // validate code by making a call to Auth0 with code.
+        // get authorization token from Auth0 in exchange for token code.
+        // create new token and associate with new authorization token.
+        // hand token back to user.
+    });
 }
 
 // Log out of an account.
 function logout(req: express.Request, res: express.Response): Promise<rest.Response> {
-    return new Promise<rest.Response>((resolve, reject) => { });
+    return new Promise<rest.Response>((resolve, reject) => {
+        // Do not redirect to Auth0 logout page. Simply delete user token.
+        const token = getContext(req).token as dq.Token;
+
+        dq.tokens.getById(token.id)
+            .then(() => { resolve(rest.Response.fromSuccess(undefined)); })
+            .catch(error => rest.Response.fromServerError(error));
+    });
 }
 
 // View account log.
