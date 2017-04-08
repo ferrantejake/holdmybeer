@@ -14,8 +14,8 @@ const paramOptions = {
 const verify = rest.verify(paramOptions);
 const validate = rest.validate(paramOptions);
 const respond = rest.respond(debug);
-// const getContext = rest.getContext;
-const getContext: any = undefined; // rest.getContext;
+const getContext = rest.getContext;
+// const getContext: any = undefined; // rest.getContext;
 
 router.route('/status')
     .get(accountStatus);
@@ -82,21 +82,23 @@ function loginVerification(req: express.Request, res: express.Response): Promise
 function logout(req: express.Request, res: express.Response): Promise<rest.Response> {
     return new Promise<rest.Response>((resolve, reject) => {
         // Do not redirect to Auth0 logout page. Simply delete user token.
-        const token = getContext(req).token as dq.Token;
-
-        dq.tokens.getById(token.id)
-            .then(() => { resolve(rest.Response.fromSuccess(undefined)); })
-            .catch(error => rest.Response.fromServerError(error));
+        getContext(req).then(requestContext => {
+            const token = requestContext.token;
+            dq.tokens.getById(token.id)
+                .then(() => { resolve(rest.Response.fromSuccess(undefined)); })
+                .catch(error => rest.Response.fromServerError(error));
+        });
     });
 }
 
 // View account log.
 function accountLog(req: express.Request, res: express.Response): Promise<rest.Response> {
     return new Promise<rest.Response>((resolve, reject) => {
-        const user = getContext(req).user as dq.User;
-
-        dq.beerlogs.getByOwner(user.id)
-            .then(records => { resolve(rest.Response.fromSuccess({ items: records.map(dq.beerlogs.mapToConsumable) })); })
-            .catch(error => { rest.Response.fromServerError(error); });
+        getContext(req).then(requestContext => {
+            const user = requestContext.user;
+            dq.beerlogs.getByOwner(user.id)
+                .then(records => { resolve(rest.Response.fromSuccess({ items: records.map(dq.beerlogs.mapToConsumable) })); })
+                .catch(error => { rest.Response.fromServerError(error); });
+        });
     });
 }
