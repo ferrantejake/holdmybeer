@@ -109,7 +109,7 @@ export abstract class DataQueries<T extends Document> {
 
         return new Promise<T>((resolve, reject) => {
             const insertableRecord = this.mapForInsert(record);
-            const options = { ConditionExpression: 'attribute_not_exists(id)' };
+            const options = { ConditionExpression: 'attribute_exists(id)' };
             this.table.insert(insertableRecord, options)
                 .then((response: any) => { console.log(insertableRecord, response); resolve(response); })
                 .catch((error: Error) => {
@@ -143,6 +143,19 @@ export abstract class DataQueries<T extends Document> {
         return new Promise<T[]>((resolve, reject) => {
             this.table.batchFind(ids)
                 .then((documents: T[]) => resolve(documents))
+                .catch(reject);
+        });
+    };
+
+    // Get documents by field name
+    public getByField(key: string, value: any): Promise<T[]> {
+        return new Promise<T[]>((resolve, reject) => {
+            const options = { ConditionExpression: 'attribute_exists(string)' /* and matches */ };
+            this.table.findBatch(options)
+                .then((response: any) => {
+                    console.log(response);
+                    resolve(response.map(this.unmapRecord));
+                })
                 .catch(reject);
         });
     };
