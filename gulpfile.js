@@ -4,6 +4,7 @@ const gulp = require('gulp-help')(require('gulp-param')(require('gulp'), process
 // const async = require('async');
 const del = require('del');
 const merge = require('merge2');
+
 // const path = require('path');
 
 // load gulp plugins
@@ -13,12 +14,31 @@ const G$ = require('gulp-load-plugins')({ lazy: true });
 const settings = require('./gulp.json');
 const tsconfig = require('./tsconfig.json');
 let tsProject = undefined;
+let APP_NAME = process.env.APP_NAME;
 
 const pack = require('./package.json');
 // const exec = require('child_process').exec;
 
-gulp.task('debug', 'Run the project and auto-restart for changes', function (project, debug) {
+// DO NOT CHANGE DEFAULT TASK - Azure depends on it
+gulp.task('default', false, defaultTask);
 
+function defaultTask(callback) {
+    if (APP_NAME)
+        G$.sequence('startup', callback);
+    else // not running in azure
+        G$.sequence('help', callback);
+}
+
+gulp.task('startup', false, startupTask);
+
+function startupTask(callback) {
+    G$.sequence('clean-main', 'build-main', callback);
+}
+
+// Debug
+gulp.task('debug', 'Run the project and auto-restart for changes', debugTask);
+
+function debugTask(project, debug) {
     debug = debug || `${pack.name}:*`;
     console.log(`>> debug ${pack.name} application with DEBUG=${debug}`);
     G$.nodemon({
@@ -33,34 +53,42 @@ gulp.task('debug', 'Run the project and auto-restart for changes', function (pro
         watch: `app`,
         ignore: `app/src`
     });
-}, {
-        options: {
-            project: `Project name: weather-stats`
-        }
-    });
-
+};
 
 // Building
+gulp.task('build', 'Compiles all TypeScript source files and updates module references', buildTask);
+gulp.task('build-main', false, buildMainTask);
 
-gulp.task('build', 'Compiles all TypeScript source files and updates module references', function (callback) {
+function buildTask(callback) {
     G$.sequence(['tslint', 'clean'], 'typescript', callback);
-});
+};
+
+function buildMainTask(callback) {
+    let sequence = getDependencyList(APP_NAME);
+    sequence.push(APP_NAME);
+    sequence = sequence.map(item => `ts-${item}`);
+    G$.sequence(sequence, callback);
+}
 
 // Watching
+gulp.task('watch', 'Contiuous build', ['build'], watchTask);
 
-gulp.task('watch', 'Contiuous build', ['build'], function () {
+function watchTask() {
     gulp.watch(settings.watchfiles, ['tslint', `typescript`]);
-});
+}
 
 // Cleaning
+gulp.task('clean', 'Cleans the generated files from lib directory', cleanTask);
+gulp.task('clean-main', false, cleanTask);
 
-gulp.task('clean', 'Cleans the generated files from lib directory', function () {
+function cleanTask() {
     return del((settings.dest), { dot: true });
-});
+};
 
 // Transpiling
+gulp.task(`typescript`, `Transpile typescript files`, transpileTask);
 
-gulp.task(`typescript`, `Transpile typescript files`, function () {
+function transpileTask() {
     tsProject = G$.typescript.createProject(tsconfig.compilerOptions);
     const tsResult = gulp.src(settings.tsfiles)
         .pipe(G$.sourcemaps.init())
@@ -80,10 +108,11 @@ gulp.task(`typescript`, `Transpile typescript files`, function () {
         // all other files
         gulp.src(settings.resources).pipe(gulp.dest(dest))
     ]);
-});
+}
 
 // see https://www.npmjs.com/package/tslint
-gulp.task('tslint', 'Lints all TypeScript source files', function () {
+gulp.task('tslint', 'Lints all TypeScript source files', tslintTask);
+function tslintTask() {
     return gulp.src(settings.tsfiles)
         .pipe(G$.tslint({
             formatter: 'verbose'
@@ -91,4 +120,4 @@ gulp.task('tslint', 'Lints all TypeScript source files', function () {
         .pipe(G$.tslint.report({
             emitError: false
         }));
-});
+}
