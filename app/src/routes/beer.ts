@@ -1,5 +1,5 @@
 import { cryptoLib, rest, token } from '../utils';
-import { dq, brewerydb } from '../components';
+import { arbiter, dq } from '../components';
 import * as express from 'express';
 const router = express.Router();
 const debug = require('debug')('holdmybeer:auth');
@@ -22,54 +22,59 @@ router.route('/log')
     .all(notAllowed);
 router.route('/:uid')
     .get(respond(getBeer))
-    .put(respond(updateBeerLog))
+    .post(respond(registerBeer))
+    .all(notAllowed);
+router.route('/:uid/related')
+    .get(respond(getRelated))
     .all(notAllowed);
 
-// Get a single beer
+// Get beer information
 function getBeer(req: express.Request, res: express.Response): Promise<rest.Response> {
     return new Promise<rest.Response>((resolve, reject) => {
         const beerId = req.params.uid;
-        dq.drinks.getById(beerId).then(beer => {
-            if (beer) return resolve(rest.Response.fromSuccess(beer));
-            else brewerydb.drinks.getByUPC(beerId)
-                .then(beer => {
-                    if (!beer) {
-                        resolve(rest.Response.fromNotFound(beerId));
-                        return;
-                    }
-
-                    dq.drinks.insert(Object.assign(beer, {
-                        brewerydbId: beer.id,
-                        id: beerId,
-                        createdAt: new Date(Date.now())
-                    } as dq.Drink))
-                        .then(updateResult => {
-                            console.log(updateResult);
-                            resolve(rest.Response.fromSuccess(beer));
-                        });
-                })
-                .catch(error => resolve(rest.Response.fromServerError(error)));
-        });
+        arbiter.drinks.getByUPC(beerId)
+            .then(beer => resolve(rest.Response.fromSuccess(beer)))
+            .catch(error => reject(rest.Response.fromServerError(error)));
     });
 }
 
-function updateBeerLog(req: express.Request, res: express.Response): Promise<rest.Response> {
+// Register beer rating for user
+function registerBeer(req: express.Request, res: express.Response): Promise<rest.Response> {
     return new Promise<rest.Response>((resolve, reject) => {
         getContext(req).then(requestContext => {
             const user = requestContext.user as dq.User;
-            const beerId = req.params.id;
+            const beerId = req.params.uid;
             const rating = req.body.rating;
             const geo = req.body.geo;
-            // const keywords = req.body.keywords
-
             dq.beerlogs.insert({
                 geo,
                 ownerId: user.id,
                 drinkId: beerId,
-            })
-                .then(beerLog => resolve(rest.Response.fromSuccess(undefined)))
+            }).then(() => resolve(rest.Response.fromSuccess(undefined)))
                 .catch(error => reject(rest.Response.fromServerError(error)));
-        });
+        }).catch(error => resolve(rest.Response.fromServerError(error)));
+    });
+}
+
+function getRelated(req: express.Request, res: express.Response): Promise<rest.Response> {
+    return new Promise<rest.Response>((resolve, reject) => {
+        // brewerydb.drinks.(beerId)
+        //     .then(beer => {
+        //         if (!beer) {
+        //             resolve(rest.Response.fromNotFound(beerId));
+        //             return;
+        //         }
+
+        //         dq.drinks.insert(Object.assign(beer, {
+        //             brewerydbId: beer.id,
+        //             id: beerId,
+        //             createdAt: new Date(Date.now())
+        //         } as dq.Drink))
+        //             .then(updateResult => {
+        //                 console.log(updateResult);
+        //                 resolve(rest.Response.fromSuccess(beer));
+        //             });
+        //     });
     });
 }
 
