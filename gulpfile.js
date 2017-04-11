@@ -64,10 +64,8 @@ function buildTask(callback) {
 };
 
 function buildMainTask(callback) {
-    let sequence = getDependencyList(APP_NAME);
-    sequence.push(APP_NAME);
-    sequence = sequence.map(item => `ts-${item}`);
-    G$.sequence(sequence, callback);
+    G$.sequence('typescript', callback);
+
 }
 
 // Watching
