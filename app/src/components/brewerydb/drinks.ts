@@ -5,14 +5,14 @@ const brewerydb = BreweryDb.client();
 
 export function getByUPC(upc: string): Promise<BreweryDbBeer> {
     return new Promise<BreweryDbBeer>((resolve, reject) => {
-        brewerydb.search.beers('upc', { code: upc }, (error: Error, beer: BreweryDbBeer) => {
+        brewerydb.search.beers('upc', { code: upc }, (error: Error, beer: BreweryDbBeer[]) => {
             if (error) {
                 // If the error string contains a 404 (drink not found)
                 if (error.message.indexOf('404') > -1) resolve(undefined);
                 // Otherwise return server error
                 else reject(error);
             }
-            else resolve(beer);
+            else resolve(beer[0]);
         });
     });
 }
