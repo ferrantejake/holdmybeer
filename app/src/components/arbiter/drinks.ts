@@ -30,3 +30,11 @@ export function getByUPC(upc: string): Promise<dq.Drink> {
             .catch(reject);
     });
 };
+
+export function getRelated(upc: string): Promise<dq.Drink[]> {
+    return new Promise<dq.Drink[]>((resolve, reject) => {
+        brewerydb.drinks.getRelated(upc)
+            .then(resolve)
+            .catch(reject);
+    });
+}
