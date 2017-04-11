@@ -33,9 +33,6 @@ router.route('/verify')
 router.route('/logout')
     .get(respond(logout))
     .all(notAllowed);
-router.route('/log')
-    .get(respond(accountLog))
-    .all(notAllowed);
 
 // Request a new device authentication session.
 function session(req: express.Request, res: express.Response): Promise<rest.Response> {
