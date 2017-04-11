@@ -24,17 +24,29 @@ export function getRelated(upc: string): Promise<BreweryDbBeer[]> {
     return new Promise<BreweryDbBeer[]>((resolve, reject) => {
         getByUPC(upc)
             .then(drink => {
-                brewerydb.beers.find({ styleId: drink.styleId }, (error: Error, response: GetBatchBeerResponse) => {
+                brewerydb.beers.find({ styleId: drink.styleId }, (error: Error, beers: BreweryDbBeer[]) => {
                     if (error) {
-                        if (error.message.indexOf('404') > -1) resolve(undefined);
+                        if (error.message.indexOf('404') > -1) resolve([]);
                         else reject(error);
                     }
-                    else resolve(response.data);
+                    else resolve(shuffle(beers).slice(0, 5));
                 });
 
             })
             .catch(reject);
     });
+}
+
+/**
+ * Shuffles array in place. ES6 version
+ * @param {Array} a items The array containing the items.
+ */
+function shuffle(array: any[]): any[] {
+    for (let i = array.length; i; i--) {
+        let j = Math.floor(Math.random() * i);
+        [array[i - 1], array[j]] = [array[j], array[i - 1]];
+    }
+    return array;
 }
 
 export interface GetBeerResponse {
