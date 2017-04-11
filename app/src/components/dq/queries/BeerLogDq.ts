@@ -1,6 +1,6 @@
 import { DataQueries, UpdateResult } from '../DataQueries';
 import { Document } from '../documents';
-interface BeerLog extends Document {
+export interface BeerLog extends Document {
     ownerId: string;
     drinkId: string;
     geo: { lat: string, lng: string };
