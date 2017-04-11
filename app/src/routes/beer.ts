@@ -17,9 +17,6 @@ const respond = rest.respond(debug);
 const notAllowed = rest.notAllowed(undefined);
 const getContext = rest.getContext;
 
-// router.route('/')
-//     .get(respond)
-//     .all(notAllowed);
 router.route('/log')
     .get(respond(accountLog))
     .all(notAllowed);
