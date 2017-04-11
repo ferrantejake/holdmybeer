@@ -1,5 +1,5 @@
 import { cryptoLib, rest, token } from '../utils';
-import { dq } from '../components';
+import { dq, brewerydb } from '../components';
 import * as express from 'express';
 const router = express.Router();
 const debug = require('debug')('holdmybeer:auth');
@@ -17,9 +17,9 @@ const respond = rest.respond(debug);
 const notAllowed = rest.notAllowed(undefined);
 const getContext = rest.getContext;
 
-router.route('/')
-    .get(undefined)
-    .all(notAllowed);
+// router.route('/')
+//     .get(respond)
+//     .all(notAllowed);
 router.route('/log')
     .get(respond(accountLog))
     .all(notAllowed);
@@ -32,15 +32,27 @@ router.route('/:uid')
 function getBeer(req: express.Request, res: express.Response): Promise<rest.Response> {
     return new Promise<rest.Response>((resolve, reject) => {
         const beerId = req.params.uid;
-        dq.drinks.getById(beerId)
-            .then(beerRecord => {
-                // If we locate a record, return a reoslve
-                if (beerRecord) return resolve(rest.Response.fromSuccess( /* map value here */ {}));
-                // Otherwise continue unto other means of retrieval
+        dq.drinks.getById(beerId).then(beer => {
+            if (beer) return resolve(rest.Response.fromSuccess(beer));
+            else brewerydb.drinks.getByUPC(beerId)
+                .then(beer => {
+                    if (!beer) {
+                        resolve(rest.Response.fromNotFound(beerId));
+                        return;
+                    }
 
-                return; /* look up in brewerydb */
-            })
-            .catch(error => resolve(rest.Response.fromServerError(error)));
+                    dq.drinks.insert(Object.assign(beer, {
+                        brewerydbId: beer.id,
+                        id: beerId,
+                        createdAt: new Date(Date.now())
+                    } as dq.Drink))
+                        .then(updateResult => {
+                            console.log(updateResult);
+                            resolve(rest.Response.fromSuccess(beer));
+                        });
+                })
+                .catch(error => resolve(rest.Response.fromServerError(error)));
+        });
     });
 }
 
