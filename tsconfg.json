@@ -2,9 +2,9 @@
     "compilerOptions": {
         "module": "commonjs",
         "moduleResolution": "node",
+        "removeComments": true,
         "noImplicitAny": true,
         "suppressImplicitAnyIndexErrors": true,
-        "removeComments": false,
         "noLib": false,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
@@ -13,12 +13,13 @@
         "target": "ES6",
         "allowJs": true
     },
-    "filesGlob": [
+    "compileOnSave": false,
+    "include": [
         "typings/index.d.ts",
         "app/src/**/*.ts"
     ],
-    "compileOnSave": false,
     "exclude": [
-        "node_modules"
+        "node_modules",
+        "**/*.spec.ts"
     ]
 }

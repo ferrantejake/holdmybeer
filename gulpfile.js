@@ -14,11 +14,13 @@ const settings = require('./gulp.json');
 const tsconfig = require('./tsconfig.json');
 let tsProject = undefined;
 
+const pack = require('./package.json');
 // const exec = require('child_process').exec;
 
 gulp.task('debug', 'Run the project and auto-restart for changes', function (project, debug) {
-    debug = debug || 'weather-stats:*';
-    console.log(`>> debug weather-stats application with DEBUG=${debug}`);
+
+    debug = debug || `${pack.name}:*`;
+    console.log(`>> debug ${pack.name} application with DEBUG=${debug}`);
     G$.nodemon({
 
         script: `index.js`,
@@ -47,7 +49,7 @@ gulp.task('build', 'Compiles all TypeScript source files and updates module refe
 // Watching
 
 gulp.task('watch', 'Contiuous build', ['build'], function () {
-    gulp.watch(settings.src, ['tslint', `typescript`]);
+    gulp.watch(settings.watchfiles, ['tslint', `typescript`]);
 });
 
 // Cleaning

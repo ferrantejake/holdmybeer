@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Gulp Debug",
+            "program": "${workspaceRoot}/node_modules/gulp/bin/gulp.js",
+            "args": [
+                "debug"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "NPM Debug",
+            "runtimeExecutable": "npm",
+            "windows": {
+                "runtimeExecutable": "npm.cmd"
+            },
+            "runtimeArgs": [
+                "debug"
+            ],
+            "port": 3000
+        }
+    ]
+}

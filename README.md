@@ -1,4 +1,4 @@
-# Hold My Beer
+# Hold My Beer #
 
 Processes of Object Oriented Software Development, Spring 2017
 
@@ -10,8 +10,7 @@ Members:
 * Fernando
 * Kirk
 
-
-Setting Up Emulator:
+## Setting Up Emulator: ##
 
 1. Go to the following link: https://www.genymotion.com/fun-zone/ 
 2. Download the personal emulator 
@@ -33,3 +32,23 @@ Installing the App onto the Emulator
 4. Once the application finishes building it will store the .apk in the following file path:
        \holdmybeer\platforms\android\build\outputs\apk\android-debug.apk
 5. Now, with the emulator already open, you can drag that .apk file directly onto the screen of the emulator and it will install it on the virtual device.
+
+
+## Setup Project ##
+- If you haven't already, download NodeJS for your system and add it to your PATH.
+- Run the follwing from project root directory
+    - `npm install` to install project dependencies
+    - `typings install` to install TypeScript linting (helpful intellisense)
+- `gulp` will tell you all of the project-relevant commands.
+
+## Compile Project ##
+Compiles the TypeScript into JavaScript
+- `gulp build`
+
+## Live Compile (Watch) ##
+Compiles your TypeScript while you're coding
+- `gulp watch`
+
+## Debug Project ##
+Runs the application in debug mode.
+- `gulp debug`
