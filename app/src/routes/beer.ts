@@ -58,23 +58,10 @@ function registerBeer(req: express.Request, res: express.Response): Promise<rest
 
 function getRelated(req: express.Request, res: express.Response): Promise<rest.Response> {
     return new Promise<rest.Response>((resolve, reject) => {
-        // brewerydb.drinks.(beerId)
-        //     .then(beer => {
-        //         if (!beer) {
-        //             resolve(rest.Response.fromNotFound(beerId));
-        //             return;
-        //         }
-
-        //         dq.drinks.insert(Object.assign(beer, {
-        //             brewerydbId: beer.id,
-        //             id: beerId,
-        //             createdAt: new Date(Date.now())
-        //         } as dq.Drink))
-        //             .then(updateResult => {
-        //                 console.log(updateResult);
-        //                 resolve(rest.Response.fromSuccess(beer));
-        //             });
-        //     });
+        const beerId = req.params.uid;
+        arbiter.drinks.getRelated(beerId)
+            .then(drinks => resolve(rest.Response.fromSuccess({ items: drinks })))
+            .catch(error => resolve(rest.Response.fromServerError(error)));
     });
 }
 

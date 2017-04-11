@@ -23,8 +23,8 @@ export function getRelated(upc: string): Promise<BreweryDbBeer[]> {
 
     return new Promise<BreweryDbBeer[]>((resolve, reject) => {
         getByUPC(upc)
-            .then(drink => {
-                brewerydb.beers.find({ styleId: drink.styleId }, (error: Error, beers: BreweryDbBeer[]) => {
+            .then(beer => {
+                brewerydb.beer.find({ styleId: beer.styleId }, (error: Error, beers: BreweryDbBeer[]) => {
                     if (error) {
                         if (error.message.indexOf('404') > -1) resolve([]);
                         else reject(error);
