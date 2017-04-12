@@ -76,7 +76,6 @@ IF DEFINED KUDU_SELECT_NODE_VERSION_CMD (
   SET NPM_CMD="!NODE_EXE!" "!NPM_JS_PATH!"
 ) ELSE (
   SET NPM_CMD=npm
-  SET GULP_CMD=".\node_modules\.bin\gulp.cmd"
   SET NODE_EXE=node
 )
 
@@ -111,7 +110,7 @@ IF EXIST "%DEPLOYMENT_TARGET%\package.json" (
 IF EXIST "%DEPLOYMENT_TARGET%\Gulpfile.js" (
   pushd "%DEPLOYMENT_TARGET%"
   echo "Building web site using Gulp"
-  call :ExecuteCmd !GULP_CMD!
+  call :ExecuteCmd ".\node_modules\.bin\gulp.cmd"
   if !ERRORLEVEL! NEQ 0 goto error
   popd
 )
