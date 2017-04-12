@@ -64,7 +64,7 @@ function buildTask(callback) {
 };
 
 function buildMainTask(callback) {
-    G$.sequence('typescript', callback);
+    G$.sequence([], 'typescript', callback);
 }
 
 // Watching
