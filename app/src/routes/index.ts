@@ -1,6 +1,7 @@
 import * as express from 'express';
 import * as AWS from 'aws-sdk';
-import { dq, rest } from '../components';
+import { dq } from '../components';
+import { rest } from '../utils';
 const router = express.Router();
 const debug = require('debug')('holdmybeer:index');
 const pkg = require('../../../package.json');
