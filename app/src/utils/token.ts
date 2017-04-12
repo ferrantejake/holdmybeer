@@ -12,10 +12,10 @@ const AUTH_CODE_CHARS = cryptoLib.AUTH_CODE_CHARS;
 const AUTH_CODE_LENGTH = 24;
 
 /**
- * Create a new token.
+ * Create a new authorizatoin token.
  * @param code - Predefined token token code
  */
-export function create(code?: string): Promise<dq.Token> {
+export function createAuthToken(code?: string): Promise<dq.Token> {
     // We will assume in the general case that tokens being created
     // are authorization tokens. For this reason, the parameters are
     // optional as we can make global constants to address tis commonality.
@@ -32,6 +32,26 @@ export function create(code?: string): Promise<dq.Token> {
                     id: code,
                     createdAt: new Date(Date.now()),
                     type: dq.TokenType.Auth
+                });
+            })
+            .then(resolve)
+            .catch(reject);
+    });
+}
+
+/**
+ * Create a new session token.
+ * @param code - Predefined token token code
+ */
+export function createSessionToken(code?: string): Promise<dq.Token> {
+    return new Promise<dq.Token>((resolve, reject) => {
+        Promise.resolve()
+            .then(() => { return code ? Promise.resolve(code) : generateSessionCode(); })
+            .then(code => {
+                return dq.tokens.insert({
+                    id: code,
+                    createdAt: new Date(Date.now()),
+                    type: dq.TokenType.Session
                 });
             })
             .then(resolve)
