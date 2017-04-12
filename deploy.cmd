@@ -76,7 +76,7 @@ IF DEFINED KUDU_SELECT_NODE_VERSION_CMD (
   SET NPM_CMD="!NODE_EXE!" "!NPM_JS_PATH!"
 ) ELSE (
   SET NPM_CMD=npm
-  SET GULP_CMD=gulp
+  SET GULP_CMD=".\node_modules\.bin\gulp.cmd"
   SET NODE_EXE=node
 )
 
