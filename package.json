@@ -2,7 +2,12 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+<<<<<<< HEAD
     "start": "node index.js"
+=======
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+>>>>>>> master
   },
   "license": "ISC",
   "name": "holdmybeer",
@@ -12,6 +17,7 @@
     "node": "6.1.0",
     "npm": "3.8.6"
   },
+<<<<<<< HEAD
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kirkelifson/holdmybeer.git"
@@ -22,6 +28,16 @@
     "Fernando Soler",
     "Krik Elifson"
   ],
+=======
+  "author": "SixPack",
+  "contributors": [
+    "Jake Ferrante"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ferrantejake/holdmybeer.git"
+  },
+>>>>>>> master
   "eslintConfig": {
     "env": {
       "es6": true,
@@ -29,9 +45,15 @@
     }
   },
   "bugs": {
+<<<<<<< HEAD
     "url": "https://github.com/kirkelifson/holdmybeer/issues"
   },
   "homepage": "https://github.com/kirkelifson/holdmybeer/#readme",
+=======
+    "url": "https://github.com/ferrantejake/holdmybeer/issues"
+  },
+  "homepage": "https://github.com/ferrantejake/holdmybeer/#readme",
+>>>>>>> master
   "dependencies": {
     "@types/auth0": "^2.4.0",
     "@types/aws-sdk": "0.0.42",
@@ -45,7 +67,11 @@
     "@types/http-status": "^0.2.29",
     "@types/mime": "0.0.29",
     "@types/morgan": "^1.7.32",
+<<<<<<< HEAD
     "@types/node": "^7.0.8",
+=======
+    "@types/node": "^7.0.12",
+>>>>>>> master
     "@types/passport": "^0.3.3",
     "@types/request": "0.0.42",
     "@types/serve-favicon": "^2.2.28",
@@ -89,4 +115,8 @@
     "tslint": "^4.2.0",
     "typescript": "^2.2.2"
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> master
