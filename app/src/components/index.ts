@@ -1,15 +1,15 @@
 import * as aws from './aws';
 import * as dq from './dq';
-import * as rest from './rest';
 import * as brewerydb from './brewerydb';
 import * as arbiter from './arbiter';
+import * as access from './access';
 
 export {
     dq,
     aws,
-    rest,
     brewerydb,
-    arbiter
+    arbiter,
+    access
 };
 
 export function init(): Promise<void> {
