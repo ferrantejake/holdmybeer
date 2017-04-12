@@ -1,8 +1,4 @@
 {
-<<<<<<< HEAD
-=======
-
->>>>>>> master
     "src": "app/src/**/*",
     "watchfiles": [
         "app/src/**/*",
