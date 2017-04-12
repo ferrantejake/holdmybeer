@@ -2,6 +2,9 @@ import * as express from 'express';
 import STATUS = require('http-status');
 import { dq } from '../components';
 
+const debug = require('debug')('holdmybeer:rest');
+const debugV = require('debug')('holdmybeer-v:rest');
+
 // Verify that the request structure is appropriate.
 export function verify(schema: any) {
     return (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -276,17 +279,16 @@ export interface RequestContext {
 export function getContext(req: express.Request): Promise<RequestContext> {
     return new Promise<RequestContext>((resolve, reject) => {
         // Accept Authorization or auithorization header
+        const context: RequestContext = { token: undefined, user: undefined };
         const token = req.get('Authorization') || req.get('authorization');
         dq.tokens.getById(token).then(tokenRecord => {
-            if (!tokenRecord) return resolve({});
+            if (!tokenRecord) return resolve(context);
             const accountId = tokenRecord.ownerId;
             dq.users.getById(accountId).then(userRecord => {
-                if (!userRecord) return resolve({ token: tokenRecord });
-                resolve({
-                    token: tokenRecord,
-                    user: userRecord
-                });
+                context.token = tokenRecord;
+                context.user = userRecord;
+                return resolve(context);
             }).catch(reject);
-        }).catch(reject);
+        }).catch(error => { console.log('fuck'); reject(error); });
     });
 }
