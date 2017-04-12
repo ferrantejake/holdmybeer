@@ -2,7 +2,7 @@
 
 :: ----------------------
 :: KUDU Deployment Script
-:: Version: 1.0.6
+:: Version: 1.0.9
 :: ----------------------
 
 :: Prerequisites
@@ -76,6 +76,7 @@ IF DEFINED KUDU_SELECT_NODE_VERSION_CMD (
   SET NPM_CMD="!NODE_EXE!" "!NPM_JS_PATH!"
 ) ELSE (
   SET NPM_CMD=npm
+  SET GULP_CMD=gulp
   SET NODE_EXE=node
 )
 
@@ -100,7 +101,7 @@ call :SelectNodeVersion
 :: 3. Install npm packages
 IF EXIST "%DEPLOYMENT_TARGET%\package.json" (
   pushd "%DEPLOYMENT_TARGET%"
-  echo "Installing dependencies"
+    echo "Installing dependencies"
   call :ExecuteCmd !NPM_CMD! install
   IF !ERRORLEVEL! NEQ 0 goto error
   popd
@@ -110,17 +111,12 @@ IF EXIST "%DEPLOYMENT_TARGET%\package.json" (
 IF EXIST "%DEPLOYMENT_TARGET%\Gulpfile.js" (
   pushd "%DEPLOYMENT_TARGET%"
   echo "Building web site using Gulp"
-  call :ExecuteCmd ".\node_modules\.bin\gulp.cmd"
+  call :ExecuteCmd !GULP_CMD!
   if !ERRORLEVEL! NEQ 0 goto error
   popd
 )
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-:: Post deployment stub
-IF DEFINED POST_DEPLOYMENT_ACTION call "%POST_DEPLOYMENT_ACTION%"
-IF !ERRORLEVEL! NEQ 0 goto error
-
 goto end
 
 :: Execute command routine that will echo out when error
