@@ -1,8 +1,4 @@
 {
-<<<<<<< HEAD
-=======
-
->>>>>>> master
     "rules": {
         "class-name": true,
         "comment-format": [
