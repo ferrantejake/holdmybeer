@@ -1,5 +1,5 @@
-import { cryptoLib, rest, token } from '../utils';
-import { arbiter, dq } from '../components';
+import { cryptoLib, rest, token } from '../../utils';
+import { arbiter, dq } from '../../components';
 import * as express from 'express';
 const router = express.Router();
 const debug = require('debug')('holdmybeer:auth');
