@@ -23,14 +23,8 @@ function start() {
 function loadApplication() {
   debug('Loading application..')
   const app = express();                    // Create app
-
   app.use(require('serve-static')(__dirname + '/../../public'));
   app.use(require('cookie-parser')());
-
-
-
-
-
   app.use(cors());                          // Enable CORS
   const routes = require('./lib/routes');   // Load file dependencies
 
@@ -43,9 +37,11 @@ function loadApplication() {
   app.use(cookieParser());
   app.use(express.static(path.join(__dirname, 'public')));
   app.use('/', routes);
-  app.use(require('express-session')({ secret: process.env.SESSION_SECRET, resave: true, saveUninitialized: true }));
+
+  // Enable sessions for passport
+  // app.use(require('express-session')({ secret: process.env.SESSION_SECRET, resave: true, saveUninitialized: true }));
   app.use(passport.initialize());
-  app.use(passport.session());
+  // app.use(passport.session());
 
   // catch 404 and forward to error handler
   app.use((req, res, next) => {

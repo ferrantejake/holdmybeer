@@ -10,7 +10,6 @@ router.use('/api', require('./api'));
 
 /* GET home page. */
 router.get('/', (req: express.Request, res: express.Response) => {
-  console.log('serving index...');
   res.render('index', { title: pkg.name, version: pkg.version, description: pkg.description, message: '' });
 });
 

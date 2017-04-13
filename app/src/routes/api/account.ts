@@ -25,7 +25,7 @@ router.route('/session')
     .get(respond(session))
     .all(notAllowed);
 router.route('/login')
-    .get(respond(access.login))
+    .get(access.login)
     .all(notAllowed);
 router.route('/verify')
     .get(respond(access.verify))

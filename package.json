@@ -3,7 +3,6 @@
   "private": true,
   "scripts": {
     "start": "node index.js"
-
   },
   "license": "ISC",
   "name": "holdmybeer",
@@ -13,7 +12,6 @@
     "node": "6.1.0",
     "npm": "3.8.6"
   },
-
   "author": "SixPack",
   "contributors": [
     "Jake Ferrante"
