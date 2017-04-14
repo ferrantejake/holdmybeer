@@ -43,16 +43,16 @@ export function createAuthToken(code?: string): Promise<dq.Token> {
  * Create a new session token.
  * @param code - Predefined token token code
  */
-export function createSessionToken(code?: string): Promise<dq.Token> {
+export function createSessionToken(code?: string, body?: dq.Token): Promise<dq.Token> {
     return new Promise<dq.Token>((resolve, reject) => {
         Promise.resolve()
             .then(() => { return code ? Promise.resolve(code) : generateSessionCode(); })
             .then(code => {
-                return dq.tokens.insert({
+                return dq.tokens.insert(Object.assign({
                     id: code,
                     createdAt: new Date(Date.now()),
                     type: dq.TokenType.Session
-                });
+                }, body));
             })
             .then(resolve)
             .catch(reject);
