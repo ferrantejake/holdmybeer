@@ -10,6 +10,7 @@ export function getByUPC(upc: string): Promise<dq.Drink> {
             else return brewerydb.drinks.getByUPC(upc);
         })
             .then(beer => {
+                // If we can't find a beer, resolve undefined.
                 if (!beer) {
                     resolve(undefined);
                     return;
@@ -26,6 +27,8 @@ export function getByUPC(upc: string): Promise<dq.Drink> {
                         console.log(updateResult);
                         resolve(beer);
                     });
+
+                // Future improvement: serach by name across alternative resources.
             })
             .catch(reject);
     });
