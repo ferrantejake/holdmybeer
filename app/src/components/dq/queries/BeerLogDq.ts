@@ -21,10 +21,10 @@ export default class BeerLogDq extends DataQueries<BeerLog> {
     }
 
     public getByOwner(owner: string): Promise<BeerLog[]> {
-        return super.getByField('owner', owner);
+        return super.getBatchByField('owner', owner);
     }
 
     public getByDrinkUPC(upc: string): Promise<BeerLog[]> {
-        return super.getByField('upc', upc);
+        return super.getBatchByField('upc', upc);
     }
 }

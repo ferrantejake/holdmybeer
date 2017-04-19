@@ -99,6 +99,7 @@ export function verify(req: express.Request, res: express.Response, next: expres
 
             if (userRecord) {
                 debugV('user record exists');
+                debugV(userRecord);
                 req.user = userRecord;
                 next();
                 return;

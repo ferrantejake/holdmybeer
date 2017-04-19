@@ -1,3 +1,4 @@
+import * as AWS from 'aws-sdk';
 import { Document } from './documents';
 import * as uuid from 'uuid';
 import * as aws from '../aws';
@@ -47,9 +48,11 @@ export type Transform<T> = (record: T) => any;
 /** Class representing base database transactions model. */
 export abstract class DataQueries<T extends Document> {
     protected table: any;
+    protected tableName: any;
 
     constructor(tableName: string) {
         debugV('instantiating table:', tableName);
+        this.tableName = tableName;
         this.table = aws.dynamodb().table(tableName);
     }
 
@@ -152,16 +155,29 @@ export abstract class DataQueries<T extends Document> {
         });
     };
 
-    // Get documents by field name
-    protected getByField(key: string, value: any): Promise<T[]> {
+    /**
+     * Retrieves a record by the specified ID.
+     * @param {string} id - The ID of the record.
+     * @return {Promise<T[]>} A record Promise.
+     */
+    protected getByField(key: string, value: string): Promise<T[]> {
+        const params = {
+            TableName: this.tableName,
+            FilterExpression: `${key} = :key_value`,
+            ExpressionAttributeValues: { ':key_value': value }
+        };
+
         return new Promise<T[]>((resolve, reject) => {
-            const options = { ConditionExpression: 'attribute_exists(string)' /* and matches */ };
-            this.table.batchFind(options)
-                .then((response: any) => {
-                    console.log(response);
-                    resolve(response.map(this.unmapRecord));
-                })
-                .catch(reject);
+            const options = { ConditionExpression: `attribute_exists(${key})` };
+            let dynamodb = aws.AWSDynamoClient();
+            dynamodb.scan(params, function (error: Error, document: AWS.DynamoDB.ScanOutput) {
+                debug('getByField:');
+                debug(document);
+                if (error) {
+                    debugV(error, error.stack); // an error occurred
+                    reject(error);
+                } else resolve(document.Items as T[]);
+            });
         });
     };
 
