@@ -43,7 +43,7 @@ export function createAuthToken(code?: string): Promise<dq.Token> {
  * Create a new session token.
  * @param code - Predefined token token code
  */
-export function createSessionToken(code?: string, body?: dq.Token): Promise<dq.Token> {
+export function createSessionToken(body?: dq.Token, code?: string): Promise<dq.Token> {
     return new Promise<dq.Token>((resolve, reject) => {
         Promise.resolve()
             .then(() => { return code ? Promise.resolve(code) : generateSessionCode(); })
