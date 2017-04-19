@@ -5,7 +5,6 @@ const debug = require('debug')('holdmybeer:dataqueries-users');
 
 /** Interface representing User model. */
 export interface User extends Document {
-    username: string;
     first: string;
     last: string;
     nick: string;
@@ -18,17 +17,16 @@ export default class UserDq extends DataQueries<User> {
 
     // Alters the record being inserted to fit the structure of the expected data.
     protected mapForInsert(record: User) {
-        this.mapCreatedAt(record);
-        delete record.id;
-        debug('mapped value', record, typeof record.createdAt);
+        const mapped = Object.assign(record);
+        this.formatId(mapped);
+        this.mapCreatedAt(mapped);
+        debug('mapped value:\n', mapped);
+        return mapped;
     }
 
     public static mapToConsumable(record: User): User {
         return record;
     }
-
-    // Does nothing. Overridden to prevent accidental usage with parent class.
-    protected formatId(record: User) { }
 
     public insert(record: User): Promise<User> {
         return new Promise<User>((resolve, reject) => {
@@ -60,4 +58,10 @@ export default class UserDq extends DataQueries<User> {
                 });
         });
     };
+
+    public getByUniqueId(uniqueId: string): Promise<User> {
+        return new Promise<User>((resolve, reject) =>
+            this.getByField('uniqueId', uniqueId).then(users =>
+                resolve(users.length > 0 ? users[0] : null)));
+    }
 };
