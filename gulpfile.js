@@ -39,7 +39,7 @@ function startupTask(callback) {
 gulp.task('debug', 'Run the project and auto-restart for changes', debugTask);
 
 function debugTask(project, debug) {
-    debug = debug || `${pack.name}:*`;
+    debug = debug || process.env.DEBUG || `${pack.name}:*`;
     console.log(`>> debug ${pack.name} application with DEBUG=${debug}`);
     G$.nodemon({
 
