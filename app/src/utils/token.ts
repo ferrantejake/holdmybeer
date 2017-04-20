@@ -11,6 +11,22 @@ const SESSION_CODE_LENGTH = 16;
 const AUTH_CODE_CHARS = cryptoLib.AUTH_CODE_CHARS;
 const AUTH_CODE_LENGTH = 24;
 
+export function createUnownedAuthToken(): Promise<dq.Token> {
+    return new Promise<dq.Token>((resolve, reject) => {
+        Promise.resolve()
+            .then(() => { return generateAuthTokenCode(); })
+            .then(code => {
+                return dq.tokens.insert({
+                    id: code,
+                    createdAt: new Date(Date.now()),
+                    type: dq.TokenType.Auth,
+                    description: 'An unowned authorization token via the user authentication workflow.',
+                    ttl: 60 // token is only live for at most 60 seconds.
+                });
+            });
+    });
+}
+
 /**
  * Create a new authorizatoin token.
  * @param code - Predefined token token code`
