@@ -15,8 +15,10 @@ const debugV = require('debug')('holdmybeer-v:access');
 export function login(req: express.Request, res: express.Response): void {
     const clientId = req.query.uniqueId;
     if (!clientId) res.send('invalid request');
+    debugV(`new login request [${clientId}]`);
     token.createSessionToken({ type: dq.TokenType.Session, context: { clientId } })
         .then(sessionToken => {
+            debugV(`new session token created:`, sessionToken);
             const strat = new Auth0Strategy({
                 clientID: process.env.AUTH0_CLIENT_ID,
                 clientSecret: process.env.AUTH0_CLIENT_SECRET,
@@ -38,22 +40,23 @@ export function verify(req: express.Request, res: express.Response, next: expres
     const state = req.query.state;
     let ecosystemId: string,
         auth0User: any;
-    let sessionToken: dq.Token = undefined;
+    debugV('received response');
 
     dq.tokens.getById(transactionId)
-        .then<any>(sessionTokenRecord => {
+        .then(sessionTokenRecord => {
             // If invalid session, then quit early.
-            if (!sessionTokenRecord) return next();
-            sessionToken = sessionTokenRecord;
-
-            // hide information in the request
-            (req as any).holdmybeer = { clientId: transactionId };
-
-            return dq.tokens.deleteById(sessionTokenRecord.id);
+            if (!sessionTokenRecord) {
+                debugV('invalid session token');
+                next();
+            } else {
+                debugV('validated session token');
+                // hide information in the request
+                (req as any).holdmybeer = { clientId: sessionTokenRecord.context.clientId };
+                return dq.tokens.deleteById(sessionTokenRecord.id);
+            }
         })
         .then(result => {
             return new Promise<string>((resolve, reject) => {
-                debugV('received response');
                 debugV('verifying credentials');
 
                 /**
@@ -150,11 +153,13 @@ export function respond(req: express.Request, res: express.Response) {
     console.log('>> respond');
     const user = req.user as dq.User;
     const clientId = (req as any).holdmybeer.clientId;
+    debug('clientId: ', clientId);
 
     if (!user) return res.render('loginConfirmation', { title: 'Login failed', message: 'Something went wrong! Please try this action again.' });
     // res.send('user could not be logged in'); // rest.Response.fromError(rest.ResponseType.ServerError, { message: 'user could not be logged in', path: undefined });
 
     // Create unowned token
+    debug('creating unowned auth token');
     token.createUnownedAuthToken({
         type: dq.TokenType.Session,
         ownerId: clientId,
@@ -162,7 +167,10 @@ export function respond(req: express.Request, res: express.Response) {
             user: user.id
         }
     })
-        .then(tokenRecord => { res.render('loginConfirmation', { title: 'You\'ve been logged in!', message: 'You may close this window now.' }); })
+        .then(tokenRecord => {
+            debug('token created, resolving', tokenRecord);
+            res.render('loginConfirmation', { title: 'You\'ve been logged in!', message: 'You may close this window now.' });
+        })
         .catch((error: Error) => {
             debug('Response to Login errored..');
             debug(error);
@@ -172,25 +180,24 @@ export function respond(req: express.Request, res: express.Response) {
 
 export function grantAccess(req: express.Request, res: express.Response): Promise<rest.Response> {
     return new Promise<rest.Response>((resolve, reject) => {
+        debug('grantaccess:');
         const clientId = req.params.uniqueId;
-        let authToken: dq.Token = undefined;
-        if (!clientId) return resolve(rest.Response.fromForbidden());
+        debug(`grantaccess: [${clientId}]`);
+        if (!clientId) { resolve(rest.Response.fromForbidden()); return; }
 
+        debug('token by ownerid');
         // If we make it here, then a client id has been passed in
         dq.tokens.getByOwnerId(clientId)
             .then<any>(sessionTokenRecord => {
+                debug('checking session token');
                 if (!sessionTokenRecord) return resolve(rest.Response.fromNotFound({ path: 'token', message: 'token not found' }));
                 const userId = sessionTokenRecord.context.user;
+                debug('session token looks good');
                 return Promise.all<any>([
-                    token.whitelistAuthToken(userId)
-                        .then(authTokenRecord => { authToken = authTokenRecord; })
-                        .then(() => dq.tokens.updateById(authToken.id, {
-                            owner: userId,
-                            description: 'Validated in authentication workflow.'
-                        })),
+                    token.whitelistAuthToken(userId, undefined, { type: dq.TokenType.Auth, description: 'Validated in authentication workflow.' }),
                     dq.tokens.deleteById(sessionTokenRecord.id)
                 ]);
-            }).then(() => resolve(rest.Response.fromSuccess({ token: authToken.id })))
+            }).then((promises: [dq.Token, void]) => resolve(rest.Response.fromSuccess({ token: promises[0].id })))
             .catch((error: Error) => {
                 debug('there was an issue');
                 debug(error);
