@@ -24,14 +24,17 @@ router.route('/')
 router.route('/login')
     .get(access.login)
     .all(notAllowed);
-router.route('/verify')
-    .get(access.verify, access.respond)
-    .all(notAllowed);
 router.route('/logout')
     .get(respond(access.logout))
     .all(notAllowed);
+router.route('/verify')
+    .get(access.verify, access.respond)
+    .all(notAllowed);
 router.route('/:userid')
     .get(respond(getUser))
+    .all(notAllowed);
+router.route('/verify/:uniqueId')
+    .get(respond(access.grantAccess))
     .all(notAllowed);
 
 // Check the status of an account
