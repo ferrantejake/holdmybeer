@@ -155,7 +155,7 @@ export function respond(req: express.Request, res: express.Response) {
     const clientId = (req as any).holdmybeer.clientId;
     debug('clientId: ', clientId);
 
-    if (!user) return res.render('confirmLogin', { title: 'Login failed', message: 'Something went wrong! Please try this action again.' });
+    if (!user) return res.render('confirmLogin', { title: 'Login failed', description: 'Something went wrong! Please try this action again.' });
     // res.send('user could not be logged in'); // rest.Response.fromError(rest.ResponseType.ServerError, { message: 'user could not be logged in', path: undefined });
 
     // Create unowned token
@@ -169,12 +169,12 @@ export function respond(req: express.Request, res: express.Response) {
     })
         .then(tokenRecord => {
             debug('token created, resolving', tokenRecord);
-            res.render('confirmLogin', { title: 'You\'ve been logged in!', message: 'You may close this window now.' });
+            res.render('confirmLogin', { title: 'You\'ve been logged in!', description: 'You may close this window now.' });
         })
         .catch((error: Error) => {
             debug('Response to Login errored..');
             debug(error);
-            res.render('confirmLogin', { title: 'Login failed', message: 'Something went wrong! Please try this action again.' });
+            res.render('confirmLogin', { title: 'Login failed', description: 'Something went wrong! Please try this action again.' });
         });
 }
 
