@@ -23,7 +23,9 @@ export function createUnownedAuthToken(body?: dq.Token): Promise<dq.Token> {
                     description: 'An unowned authorization token via the user authentication workflow.',
                     ttl: 60 // token is only live for at most 60 seconds.
                 }, body));
-            });
+            })
+            .then(resolve)
+            .catch(reject);
     });
 }
 
@@ -31,7 +33,7 @@ export function createUnownedAuthToken(body?: dq.Token): Promise<dq.Token> {
  * Create a new authorizatoin token.
  * @param code - Predefined token token code`
  */
-export function whitelistAuthToken(ownerId: string, code?: string): Promise<dq.Token> {
+export function whitelistAuthToken(ownerId: string, code?: string, body?: dq.Token): Promise<dq.Token> {
     // We will assume in the general case that tokens being created
     // are authorization tokens. For this reason, the parameters are
     // optional as we can make global constants to address tis commonality.
@@ -44,12 +46,14 @@ export function whitelistAuthToken(ownerId: string, code?: string): Promise<dq.T
         Promise.resolve()
             .then(() => { return code ? Promise.resolve(code) : generateAuthTokenCode(); })
             .then(code => {
-                return dq.tokens.insert({
+                return dq.tokens.insert(Object.assign({
                     id: code,
+                    ownerId,
                     createdAt: new Date(Date.now()),
                     type: dq.TokenType.Auth,
-                    ownerId
-                });
+                    description: 'An unowned authorization token via the user authentication workflow.',
+                    ttl: 60 // token is only live for at most 60 seconds.
+                }, body));
             })
             .then(resolve)
             .catch(reject);
