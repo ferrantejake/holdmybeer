@@ -18,11 +18,8 @@ const notAllowed = rest.notAllowed({});
 const getContext = rest.getContext;
 // const getContext: any = undefined; // rest.getContext;
 
-router.route('/status')
-    .get(accountStatus)
-    .all(notAllowed);
-router.route('/session')
-    .get(respond(session))
+router.route('/')
+    .get(respond(accountStatus))
     .all(notAllowed);
 router.route('/login')
     .get(access.login)
@@ -33,14 +30,9 @@ router.route('/verify')
 router.route('/logout')
     .get(respond(access.logout))
     .all(notAllowed);
-
-// Request a new device authentication session.
-function session(req: express.Request, res: express.Response): Promise<rest.Response> {
-    return new Promise<rest.Response>((resolve, reject) => {
-        token.createAuthToken()
-            .then(tokenRecord => resolve(rest.Response.fromSuccess(tokenRecord)));
-    });
-}
+router.route('/:userid')
+    .get(respond(getUser))
+    .all(notAllowed);
 
 // Check the status of an account
 function accountStatus(req: express.Request, res: express.Response): Promise<rest.Response> {
@@ -51,4 +43,23 @@ function accountStatus(req: express.Request, res: express.Response): Promise<res
             else rest.Response.fromNotFound({ path: undefined, message: 'Invalid token' });
         });
     });
+}
+
+// Get user if requestee is a friend.
+function getUser(req: express.Request, res: express.Response): Promise<rest.Response> {
+    return new Promise<rest.Response>((resolve, reject) => {
+        const requestedUserId = req.params.userId;
+
+        getContext(req).then(requestContext => {
+            // If the requestee DNE, then the service is inaccessable by this requestee.
+            const user = requestContext.user;
+            if (!user || userHasFriend(user, requestedUserId)) return rest.Response.fromForbidden();
+
+            dq.users.getById(requestedUserId).then(friend =>
+                rest.Response.fromSuccess(dq.UserDq.mapToConsumable(requestContext.user)));
+        });
+    });
+    function userHasFriend(user: dq.User, friendId: string): boolean {
+        return ((user as any).friends as any[]).indexOf(friendId) > -1 ? true : false;
+    }
 }

@@ -13,9 +13,9 @@ const AUTH_CODE_LENGTH = 24;
 
 /**
  * Create a new authorizatoin token.
- * @param code - Predefined token token code
+ * @param code - Predefined token token code`
  */
-export function createAuthToken(code?: string): Promise<dq.Token> {
+export function whitelistAuthToken(ownerId: string, code?: string): Promise<dq.Token> {
     // We will assume in the general case that tokens being created
     // are authorization tokens. For this reason, the parameters are
     // optional as we can make global constants to address tis commonality.
@@ -31,7 +31,8 @@ export function createAuthToken(code?: string): Promise<dq.Token> {
                 return dq.tokens.insert({
                     id: code,
                     createdAt: new Date(Date.now()),
-                    type: dq.TokenType.Auth
+                    type: dq.TokenType.Auth,
+                    ownerId
                 });
             })
             .then(resolve)

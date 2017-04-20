@@ -101,6 +101,7 @@ export function verify(req: express.Request, res: express.Response, next: expres
                 debugV('user record exists');
                 debugV(userRecord);
                 req.user = userRecord;
+                debug(req.user);
                 next();
                 return;
             }
@@ -117,7 +118,7 @@ export function verify(req: express.Request, res: express.Response, next: expres
             dq.users.insert(user)
                 .then(response => {
                     debugV('new user created');
-                    req.user = userRecord;
+                    req.user = response;
                     next();
                     return;
                 }).catch((error: Error) => {
@@ -138,16 +139,25 @@ export function test(req: express.Request, res: express.Response): void {
 }
 export function respond(req: express.Request, res: express.Response): Promise<rest.Response> {
     console.log('>> respond');
+    const user = req.user as dq.User;
     return new Promise<rest.Response>((resolve, reject) => {
-        if (!req.user) return resolve(rest.Response.fromError(rest.ResponseType.ServerError, { message: 'user could not be logged in', path: undefined }));
-        // if we make it here, then the response is necessarily well formed.
-        // normally we would validate the but because this is an untrusted anon source with whom we
-        // will just outright trust, we will ignore this.
-        // validate code by making a call to Auth0 with code.
-        // get authorization token from Auth0 in exchange for token code.
-        // create new token and associate with new authorization token.
-        // hand token back to user.
+        if (!user) return resolve(rest.Response.fromError(rest.ResponseType.ServerError, { message: 'user could not be logged in', path: undefined }));
+
+        // Whitelist user and respond with token value.
+        token.whitelistAuthToken(user.id)
+            .then(tokenRecord => resolve(rest.Response.fromSuccess({ token: tokenRecord.id })))
+            .catch((error: Error) => {
+                debug('Response to Login errored..');
+                return resolve(rest.Response.fromServerError({ message: error.message, path: undefined }));
+            });
     });
+    // if we make it here, then the response is necessarily well formed.
+    // normally we would validate the but because this is an untrusted anon source with whom we
+    // will just outright trust, we will ignore this.
+    // validate code by making a call to Auth0 with code.
+    // get authorization token from Auth0 in exchange for token code.
+    // create new token and associate with new authorization token.
+    // hand token back to user.
 }
 
 export function logout(req: express.Request, res: express.Response): Promise<rest.Response> {
