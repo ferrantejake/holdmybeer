@@ -224,11 +224,11 @@ export abstract class DataQueries<T extends Document> {
 
     // Worth nothing this system does not `ensure` that a delete has actually
     // taken place, but assumes if there was no error that the delete was successfull.
-    public deleteById(id: string): Promise<DeleteResult> {
-        return new Promise<DeleteResult>((resolve, reject) => {
+    public deleteById(id: string): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
             this.table.remove(id)
                 // Because we do not ensure a deletion, return undefined for modification and count.
-                .then(() => resolve({ count: undefined, isModified: undefined, success: true } as DeleteResult))
+                .then(resolve)
                 .catch(reject);
         });
     };
