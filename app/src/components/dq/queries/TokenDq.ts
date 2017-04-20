@@ -9,7 +9,7 @@ export interface Token extends Document {
     ownerId?: string;
     type: TokenType;
     // Context is never exposed to the consumer.
-    context?: Object;
+    context?: any;
     // Public context is mapped to `context` in it's consumable mapped form.
     publicContext?: Object;
     description?: string;
@@ -60,6 +60,15 @@ export default class TokenDq extends DataQueries<Token> {
                 });
         });
     };
+
+    public getByOwnerId(owner: string): Promise<Token> {
+
+        return new Promise<Token>((resolve, reject) =>
+            super.getByField('ownerId', owner).then(tokens =>
+                resolve(tokens.length > 0 ? tokens[0] : undefined)
+            )
+        );
+    }
 
     // public updateById(id: string, fields: Object): Promise<Queries.UpdateResult> {
     //     return new Promise<Queries.UpdateResult>((resolve, reject) => {

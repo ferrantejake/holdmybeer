@@ -13,7 +13,9 @@ const debugV = require('debug')('holdmybeer-v:access');
 
 // Log into an account using an authorization provider.
 export function login(req: express.Request, res: express.Response): void {
-    token.createSessionToken()
+    const clientId = req.query.uniqueId;
+    if (!clientId) res.send('invalid request');
+    token.createSessionToken({ type: dq.TokenType.Session, context: { clientId } })
         .then(sessionToken => {
             const strat = new Auth0Strategy({
                 clientID: process.env.AUTH0_CLIENT_ID,
@@ -36,9 +38,20 @@ export function verify(req: express.Request, res: express.Response, next: expres
     const state = req.query.state;
     let ecosystemId: string,
         auth0User: any;
+    let sessionToken: dq.Token = undefined;
 
-    Promise.resolve()
-        .then(() => {
+    dq.tokens.getById(transactionId)
+        .then<any>(sessionTokenRecord => {
+            // If invalid session, then quit early.
+            if (!sessionTokenRecord) return next();
+            sessionToken = sessionTokenRecord;
+
+            // hide information in the request
+            (req as any).holdmybeer = { clientId: transactionId };
+
+            return dq.tokens.deleteById(sessionTokenRecord.id);
+        })
+        .then(result => {
             return new Promise<string>((resolve, reject) => {
                 debugV('received response');
                 debugV('verifying credentials');
@@ -96,7 +109,6 @@ export function verify(req: express.Request, res: express.Response, next: expres
         })
         .then((uniqueId: string) => { return dq.users.getByUniqueId(uniqueId); })
         .then((userRecord: dq.User) => {
-
             if (userRecord) {
                 debugV('user record exists');
                 debugV(userRecord);
@@ -134,23 +146,28 @@ export function verify(req: express.Request, res: express.Response, next: expres
         });
 }
 
-export function test(req: express.Request, res: express.Response): void {
-    console.log('test');
-}
-export function respond(req: express.Request, res: express.Response): Promise<rest.Response> {
+export function respond(req: express.Request, res: express.Response) {
     console.log('>> respond');
     const user = req.user as dq.User;
-    return new Promise<rest.Response>((resolve, reject) => {
-        if (!user) return resolve(rest.Response.fromError(rest.ResponseType.ServerError, { message: 'user could not be logged in', path: undefined }));
+    const clientId = (req as any).holdmybeer.clientId;
 
-        // Whitelist user and respond with token value.
-        token.whitelistAuthToken(user.id)
-            .then(tokenRecord => resolve(rest.Response.fromSuccess({ token: tokenRecord.id })))
-            .catch((error: Error) => {
-                debug('Response to Login errored..');
-                return resolve(rest.Response.fromServerError({ message: error.message, path: undefined }));
-            });
-    });
+    if (!user) return res.render('loginConfirmation', { title: 'Login failed', message: 'Something went wrong! Please try this action again.' });
+    // res.send('user could not be logged in'); // rest.Response.fromError(rest.ResponseType.ServerError, { message: 'user could not be logged in', path: undefined });
+
+    // Create unowned token
+    token.createUnownedAuthToken({
+        type: dq.TokenType.Session,
+        ownerId: clientId,
+        context: {
+            user: user.id
+        }
+    })
+        .then(tokenRecord => { res.render('loginConfirmation', { title: 'You\'ve been logged in!', message: 'You may close this window now.' }); })
+        .catch((error: Error) => {
+            debug('Response to Login errored..');
+            debug(error);
+            res.render('loginConfirmation', { title: 'Login failed', message: 'Something went wrong! Please try this action again.' });
+        });
     // if we make it here, then the response is necessarily well formed.
     // normally we would validate the but because this is an untrusted anon source with whom we
     // will just outright trust, we will ignore this.
@@ -158,6 +175,35 @@ export function respond(req: express.Request, res: express.Response): Promise<re
     // get authorization token from Auth0 in exchange for token code.
     // create new token and associate with new authorization token.
     // hand token back to user.
+}
+
+export function grantAccess(req: express.Request, res: express.Response): Promise<rest.Response> {
+    return new Promise<rest.Response>((resolve, reject) => {
+        const clientId = req.params.uniqueId;
+        let authToken: dq.Token = undefined;
+        if (!clientId) return resolve(rest.Response.fromForbidden());
+
+        // If we make it here, then a client id has been passed in
+        dq.tokens.getByOwnerId(clientId)
+            .then<any>(sessionTokenRecord => {
+                if (!sessionTokenRecord) return resolve(rest.Response.fromNotFound({ path: 'token', message: 'token not found' }));
+                const userId = sessionTokenRecord.context.user;
+                return Promise.all<any>([
+                    token.whitelistAuthToken(userId)
+                        .then(authTokenRecord => { authToken = authTokenRecord; })
+                        .then(() => dq.tokens.updateById(authToken.id, {
+                            owner: userId,
+                            description: 'Validated in authentication workflow.'
+                        })),
+                    dq.tokens.deleteById(sessionTokenRecord.id)
+                ]);
+            }).then(() => resolve(rest.Response.fromSuccess({ token: authToken.id })))
+            .catch((error: Error) => {
+                debug('there was an issue');
+                debug(error);
+                resolve(rest.Response.fromServerError({ message: error ? error.message : undefined, path: undefined }));
+            });
+    });
 }
 
 export function logout(req: express.Request, res: express.Response): Promise<rest.Response> {
