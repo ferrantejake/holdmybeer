@@ -25,7 +25,7 @@ router.route('/login')
     .get(access.login)
     .all(notAllowed);
 router.route('/verify')
-    .get(access.verify, respond(access.respond))
+    .get(access.verify, access.respond)
     .all(notAllowed);
 router.route('/logout')
     .get(respond(access.logout))

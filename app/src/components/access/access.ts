@@ -168,13 +168,6 @@ export function respond(req: express.Request, res: express.Response) {
             debug(error);
             res.render('loginConfirmation', { title: 'Login failed', message: 'Something went wrong! Please try this action again.' });
         });
-    // if we make it here, then the response is necessarily well formed.
-    // normally we would validate the but because this is an untrusted anon source with whom we
-    // will just outright trust, we will ignore this.
-    // validate code by making a call to Auth0 with code.
-    // get authorization token from Auth0 in exchange for token code.
-    // create new token and associate with new authorization token.
-    // hand token back to user.
 }
 
 export function grantAccess(req: express.Request, res: express.Response): Promise<rest.Response> {
