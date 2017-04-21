@@ -30,7 +30,7 @@ router.route('/logout')
 router.route('/verify')
     .get(access.verify, access.buildOutProfile, access.respond)
     .all(notAllowed);
-router.route('/:userid')
+router.route('/:userId')
     .get(respond(getUser))
     .all(notAllowed);
 router.route('/verify/:uniqueId')
@@ -58,17 +58,22 @@ function accountStatus(req: express.Request, res: express.Response): Promise<res
 function getUser(req: express.Request, res: express.Response): Promise<rest.Response> {
     return new Promise<rest.Response>((resolve, reject) => {
         const requestedUserId = req.params.userId;
+        debug('getUser', requestedUserId);
 
         getContext(req).then(requestContext => {
             // If the requestee DNE, then the service is inaccessable by this requestee.
             const user = requestContext.user;
-            if (!user || userHasFriend(user, requestedUserId)) return rest.Response.fromForbidden();
-
-            dq.users.getById(requestedUserId).then(friend =>
-                rest.Response.fromSuccess(dq.UserDq.mapToConsumable(requestContext.user)));
+            if (!user || !userHasFriend(user, requestedUserId)) {
+                debug('user does not have friend requested');
+                return resolve(rest.Response.fromNotFound({ message: 'user not found', path: undefined }));
+            }
+            debug('user has friend requested');
+            dq.users.getById(requestedUserId)
+                .then(friend => resolve(rest.Response.fromSuccess(friend)))
+                .catch(error => resolve(rest.Response.fromServerError({ path: undefined, message: error.message })));
         });
     });
     function userHasFriend(user: dq.User, friendId: string): boolean {
-        return ((user as any).friends as any[]).indexOf(friendId) > -1 ? true : false;
+        return user.friends.indexOf(friendId) > -1 ? true : false;
     }
 }
