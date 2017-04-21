@@ -67,7 +67,10 @@ export abstract class DataQueries<T extends Document> {
         const mapped = Object.assign(record);
         this.formatId(mapped);
         this.mapCreatedAt(mapped);
+        this.removeUndefinedValues(record);
+        debug('mapped value:', mapped);
         return mapped;
+
     }
 
     // Alters the record being inserted to fit the structure of the expected data.
@@ -75,6 +78,7 @@ export abstract class DataQueries<T extends Document> {
     protected mapForUpdate(record: T): T {
         delete record.id;
         delete record.createdAt;
+        this.removeUndefinedValues(record);
         return record;
     }
 
@@ -106,6 +110,10 @@ export abstract class DataQueries<T extends Document> {
         if (!(record || record.createdAt))
             try { record.createdAt = new Date(record.createdAt); }
             catch (error) { throw error; }
+    }
+
+    protected removeUndefinedValues(record: T): void {
+        Object.keys(record).forEach(key => !record[key] ? delete record[key] : undefined);
     }
 
     // Insert a document

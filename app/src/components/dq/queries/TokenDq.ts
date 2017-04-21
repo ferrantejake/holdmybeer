@@ -31,6 +31,7 @@ export default class TokenDq extends DataQueries<Token> {
         const mapped = Object.assign(record);
         mapped.type = TokenType[record.type as any];
         this.mapCreatedAt(mapped);
+        this.removeUndefinedValues(record);
         return mapped;
     }
 

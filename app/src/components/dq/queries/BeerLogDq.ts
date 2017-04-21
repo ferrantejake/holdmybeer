@@ -9,7 +9,7 @@ export interface BeerLog extends Document {
 
 export default class BeerLogDq extends DataQueries<BeerLog> {
     public constructor() {
-        super('holdmybeer_drinks');
+        super('holdmybeer_logs');
     }
 
     // public static mapToConsumable(record: BeerLog): BeerLog {
@@ -21,7 +21,7 @@ export default class BeerLogDq extends DataQueries<BeerLog> {
     }
 
     public getByOwner(owner: string): Promise<BeerLog[]> {
-        return super.getByField('owner', owner);
+        return super.getByField('ownerId', owner);
     }
 
     public getByDrinkUPC(upc: string): Promise<BeerLog[]> {
