@@ -52,7 +52,6 @@ export function whitelistAuthToken(ownerId: string, code?: string, body?: dq.Tok
                     createdAt: new Date(Date.now()),
                     type: dq.TokenType.Auth,
                     description: 'An unowned authorization token via the user authentication workflow.',
-                    ttl: 60 // token is only live for at most 60 seconds.
                 }, body));
             })
             .then(resolve)
