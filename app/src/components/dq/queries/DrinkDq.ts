@@ -17,6 +17,7 @@ export default class DrinkDq extends DataQueries<Drink> {
     protected mapForInsert(record: Drink) {
         this.mapCreatedAt(record);
         // debug('mapped value', record, typeof record.createdAt);
+        this.removeUndefinedValues(record);
         return record;
     }
 

@@ -21,6 +21,7 @@ export default class UserDq extends DataQueries<User> {
         const mapped = Object.assign(record);
         this.formatId(mapped);
         this.mapCreatedAt(mapped);
+        this.removeUndefinedValues(record);
         debug('mapped value:\n', mapped);
         return mapped;
     }
