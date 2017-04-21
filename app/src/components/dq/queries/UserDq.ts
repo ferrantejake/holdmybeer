@@ -70,7 +70,7 @@ export default class UserDq extends DataQueries<User> {
         return new Promise<User[]>((resolve, reject) => {
             this.getById(userId).then(userRecord => {
                 this.getByIds(userRecord.friends)
-                    .then(friendRecords => { resolve(friendRecords); })
+                    .then(resolve)
                     .catch(reject);
             }).catch(reject);
         });
