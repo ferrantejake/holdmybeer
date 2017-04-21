@@ -17,9 +17,6 @@ const respond = rest.respond(debug);
 const notAllowed = rest.notAllowed({});
 const getContext = rest.getContext;
 
-router.route('/log')
-    .get(respond(accountLog))
-    .all(notAllowed);
 router.route('/:uid')
     .get(respond(getBeer))
     .post(respond(registerBeer))
@@ -66,20 +63,5 @@ function getRelated(req: express.Request, res: express.Response): Promise<rest.R
         arbiter.drinks.getRelated(beerId)
             .then(drinks => resolve(rest.Response.fromSuccess({ items: drinks })))
             .catch(error => resolve(rest.Response.fromServerError(error)));
-    });
-}
-
-// View account log.
-function accountLog(req: express.Request, res: express.Response): Promise<rest.Response> {
-    debug('log');
-    return new Promise<rest.Response>((resolve, reject) => {
-        getContext(req).then(requestContext => {
-            const user = requestContext.user;
-            dq.beerlogs.getByOwner(user.id)
-                .then(records => {
-                    debug('resolving'); resolve(rest.Response.fromSuccess({ items: records }));
-                })
-                .catch(error => { rest.Response.fromServerError(error); });
-        });
     });
 }
