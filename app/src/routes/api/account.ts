@@ -21,6 +21,9 @@ const getContext = rest.getContext;
 router.route('/')
     .get(respond(accountStatus))
     .all(notAllowed);
+router.route('/log')
+    .get(respond(accountLog))
+    .all(notAllowed);
 router.route('/login')
     .get(access.login)
     .all(notAllowed);
@@ -30,15 +33,19 @@ router.route('/logout')
 router.route('/verify')
     .get(access.verify, access.buildOutProfile, access.respond)
     .all(notAllowed);
+router.route('/verify/:uniqueId')
+    .get(respond(access.grantAccess))
+    .all(notAllowed);
 router.route('/:userId')
     .get(respond(getUser))
     .all(notAllowed);
-router.route('/verify/:uniqueId')
-    .get(respond(access.grantAccess))
+router.route('/:userId/log')
+    .get(respond(friendAccountLog))
     .all(notAllowed);
 
 // Check the status of an account
 function accountStatus(req: express.Request, res: express.Response): Promise<rest.Response> {
+    debug('accountStatus');
     return new Promise<rest.Response>((resolve, reject) => {
         getContext(req).then(requestContext => {
             if (requestContext.user) {
@@ -73,7 +80,42 @@ function getUser(req: express.Request, res: express.Response): Promise<rest.Resp
                 .catch(error => resolve(rest.Response.fromServerError({ path: undefined, message: error.message })));
         });
     });
-    function userHasFriend(user: dq.User, friendId: string): boolean {
-        return user.friends.indexOf(friendId) > -1 ? true : false;
-    }
+
+}
+
+// View account log.
+function accountLog(req: express.Request, res: express.Response): Promise<rest.Response> {
+    debug('log');
+    return new Promise<rest.Response>((resolve, reject) => {
+        getContext(req).then(requestContext => {
+            const user = requestContext.user;
+            dq.beerlogs.getByOwner(user.id)
+                .then(records => {
+                    debug('resolving'); resolve(rest.Response.fromSuccess({ items: records }));
+                })
+                .catch(error => { rest.Response.fromServerError(error); });
+        });
+    });
+}
+
+// View account log.
+function friendAccountLog(req: express.Request, res: express.Response): Promise<rest.Response> {
+    debug('log-alt');
+    const userId = req.params.userId;
+    return new Promise<rest.Response>((resolve, reject) => {
+        getContext(req).then(requestContext => {
+            const user = requestContext.user;
+            if (!user || !userHasFriend(requestContext.user, userId)) return resolve(rest.Response.fromNotFound({ message: 'user not found', path: undefined }));
+
+            dq.beerlogs.getByOwner(userId)
+                .then(records => {
+                    debug('resolving'); resolve(rest.Response.fromSuccess({ items: records }));
+                })
+                .catch(error => { rest.Response.fromServerError(error); });
+        });
+    });
+}
+
+function userHasFriend(user: dq.User, friendId: string): boolean {
+    return user.friends.indexOf(friendId) > -1 ? true : false;
 }
