@@ -128,7 +128,8 @@ export function verify(req: express.Request, res: express.Response, next: expres
                 email: auth0User.email,
                 first: auth0User.given_name,
                 last: auth0User.family_name,
-                nick: auth0User.given_name
+                nick: auth0User.given_name,
+                friends: []
             };
             dq.users.insert(user)
                 .then(response => {
@@ -147,6 +148,26 @@ export function verify(req: express.Request, res: express.Response, next: expres
             debugV(error);
             next();
         });
+}
+
+export function buildOutProfile(req: express.Request, res: express.Response, next: express.NextFunction) {
+    debugV('building profile..', );
+    if (!req.user) { next(); return; }
+
+    // quick setup
+    req.user.provider = req.user.uniqueId.split('|')[0];
+
+    getManagementAccess()
+        .then(access => { return getAuth0Friends(req.user.uniqueId, access.token_type, access.access_token, req.user.provider); })
+        .then((friends: Auth0Friend[]) => {
+            debugV('friends:', friends);
+            dq.users.getByUniqueId(req.user.uniqueId)
+                .then(userRecord => {
+                    dq.users.associateFriends(userRecord.id, friends.map(f => { return f.id; }))
+                        .then(next)
+                        .catch(error => { debug(error); next(); });
+                }).catch(error => { debug(error); next(); });
+        }).catch(error => { debug(error); next(); });
 }
 
 export function respond(req: express.Request, res: express.Response) {
@@ -228,3 +249,65 @@ passport.deserializeUser((id: string, done: (error: Error, user?: dq.User) => vo
         .then(user => done(null, user))
         .catch(error => done(error));
 });
+
+export interface Auth0Friend {
+    first: string;
+    last: string;
+    id: string;
+}
+
+interface ManagementAccessInfo {
+    access_token: string;
+    expires_in: number;
+    scope: string;
+    token_type: string;
+}
+
+export function getManagementAccess(): Promise<ManagementAccessInfo> {
+    return new Promise<ManagementAccessInfo>((resolve, reject) => {
+        const options = {
+            method: 'POST',
+            url: 'https://holdmybeer.auth0.com/oauth/token',
+            headers: { 'content-type': 'application/json' },
+            body: `{"client_id":"${process.env.AUTH0_CLIENT_ID}","client_secret":"${process.env.AUTH0_CLIENT_SECRET}","audience":"https://${process.env.AUTH0_DOMAIN}/api/v2/","grant_type":"client_credentials"}`
+        };
+
+        request(options, function (error, response, body: any) {
+            if (error) return reject(error);
+            else {
+                debug('retrieved management access', body);
+                try { resolve(JSON.parse(body) as ManagementAccessInfo); }
+                catch (e) { resolve(body as ManagementAccessInfo); debug('>>>>>> dont neeed to parse..'); }
+            }
+        });
+    });
+}
+
+export function getAuth0Friends(userId: string, tokenType: string, token: string, provider: string): Promise<Auth0Friend[]> {
+    debug('getting auth0 friends');
+    return new Promise<Auth0Friend[]>((resolve, reject) => {
+        const options = {
+            method: 'GET',
+            url: url.resolve(`https://${process.env.AUTH0_DOMAIN}/api/v2/users/${userId}`, ''),
+            headers: { 'content-type': 'application/json', 'Authorization': `${tokenType} ${token}` },
+            // body: `{"client_id":"${process.env.AUTH0_CLIENT_ID}","client_secret":"${process.env.AUTH0_CLIENT_SECRET}","audience":"https://${process.env.AUTH0_DOMAIN}/api/v2/","grant_type":"client_credentials"}`
+        };
+
+        debug('making friends request (lol)\n\n');
+        debug(options);
+
+        request(options, function (error, response, body) {
+            if (error) return reject(error);
+            try {
+                debug('attempting to parse friends');
+                console.log(body);
+                const data: any = JSON.parse(body);
+                const friends = data.context.mutual_friends.data;
+                const newFriends: Auth0Friend[] = (friends as { id: string, name: string }[])
+                    .map(f => { return { id: `${provider}|${f.id}`, first: f.name.split(' ')[0], last: f.name.split(' ')[1] }; });
+                debug('friends:', newFriends);
+                resolve(newFriends);
+            } catch (error) { reject(error); };
+        });
+    });
+}
