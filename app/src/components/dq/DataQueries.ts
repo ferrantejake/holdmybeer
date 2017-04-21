@@ -67,7 +67,9 @@ export abstract class DataQueries<T extends Document> {
         const mapped = Object.assign(record);
         this.formatId(mapped);
         this.mapCreatedAt(mapped);
+        debug('mapped value:', mapped);
         return mapped;
+
     }
 
     // Alters the record being inserted to fit the structure of the expected data.

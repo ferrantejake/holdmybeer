@@ -40,12 +40,14 @@ function getBeer(req: express.Request, res: express.Response): Promise<rest.Resp
 
 // Register beer rating for user
 function registerBeer(req: express.Request, res: express.Response): Promise<rest.Response> {
+    debug('registerBeer');
     return new Promise<rest.Response>((resolve, reject) => {
         getContext(req).then(requestContext => {
             const user = requestContext.user as dq.User;
             const beerId = req.params.uid;
             const rating = req.body.rating;
             const geo = req.body.geo;
+            debug('registerBeer: inserting record');
             dq.beerlogs.insert({
                 geo,
                 ownerId: user.id,
