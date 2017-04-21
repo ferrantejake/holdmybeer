@@ -41,9 +41,15 @@ router.route('/verify/:uniqueId')
 function accountStatus(req: express.Request, res: express.Response): Promise<rest.Response> {
     return new Promise<rest.Response>((resolve, reject) => {
         getContext(req).then(requestContext => {
-            if (requestContext.user)
-                rest.Response.fromSuccess(dq.UserDq.mapToConsumable(requestContext.user));
-            else rest.Response.fromNotFound({ path: undefined, message: 'Invalid token' });
+            if (requestContext.user) {
+                dq.users.getFriends(requestContext.user.id)
+                    .then(friends => {
+                        requestContext.user.friends = friends as any[];
+                        resolve(rest.Response.fromSuccess(dq.UserDq.mapToConsumable(requestContext.user)));
+                    })
+                    .catch(error => resolve(rest.Response.fromServerError({ path: undefined, message: 'server error' })));
+            }
+            else resolve(rest.Response.fromNotFound({ path: undefined, message: 'Invalid token' }));
         });
     });
 }
