@@ -9,7 +9,7 @@ export interface BeerLog extends Document {
 
 export default class BeerLogDq extends DataQueries<BeerLog> {
     public constructor() {
-        super('holdmybeer_drinks');
+        super('holdmybeer_logs');
     }
 
     // public static mapToConsumable(record: BeerLog): BeerLog {
