@@ -8,6 +8,7 @@ export interface User extends Document {
     first: string;
     last: string;
     nick: string;
+    friends: string[];
 };
 
 export default class UserDq extends DataQueries<User> {
@@ -64,4 +65,57 @@ export default class UserDq extends DataQueries<User> {
             this.getByField('uniqueId', uniqueId).then(users =>
                 resolve(users.length > 0 ? users[0] : null)));
     }
+
+    public getFriends(userId: string): Promise<User[]> {
+        return new Promise<User[]>((resolve, reject) => {
+            this.getById(userId).then(userRecord => {
+                this.getByIds(userRecord.friends)
+                    .then(friendRecords => { resolve(friendRecords); })
+                    .catch(reject);
+            }).catch(reject);
+        });
+    }
+
+    // Associates friends with requested user by uniqueIds
+    public associateFriends(userId: string, friends: string[]): Promise<void> {
+        // Gets all friend records mentioned
+        // Concatenates userIds with current friends
+        // Removes any possible duplicate friends
+        // Updates user record with new friends information
+        return new Promise<void>((resolve, reject) => {
+            const friendPromises = friends.map(uniqueId =>
+                this.getByField('uniqueId', uniqueId)
+                    .then(friends => friends.length > 0 ? friends[0] : undefined)
+                    .catch(reject));
+            Promise.all(friendPromises)
+                .then(friendRecords => {
+                    this.getById(userId)
+                        .then(userRecord => {
+                            const friends = removeDuplicates(friendRecords.map((f: User) => {
+                                return f ? f.id : undefined;
+                            }).concat(userRecord.friends));
+                            debug('about to update:', friends);
+                            this.updateById(userRecord.id, {
+                                friends
+                                // Map friends to friend ids, concatenate with current list, remove duplicates.
+
+                            })
+                                .then(() => resolve())
+                                .catch(reject);
+                        })
+                        .catch(reject);
+                })
+                .catch(reject);
+        });
+    }
 };
+
+// Remove duplicates
+function removeDuplicates(array: any[]) {
+    return array
+        .sort()
+        .filter(function (item, pos, ary) {
+            if (item)
+                return !pos || item !== ary[pos - 1];
+        });
+}
