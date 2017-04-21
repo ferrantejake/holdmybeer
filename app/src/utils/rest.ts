@@ -277,17 +277,20 @@ export interface RequestContext {
     user?: dq.User;
 }
 export function getContext(req: express.Request): Promise<RequestContext> {
+    debugV('getContext:');
     return new Promise<RequestContext>((resolve, reject) => {
         // Accept Authorization or auithorization header
         const context: RequestContext = { token: undefined, user: undefined };
         const token = req.get('Authorization') || req.get('authorization');
         dq.tokens.getById(token).then(tokenRecord => {
+            debugV('getContext: token:', tokenRecord);
             if (!tokenRecord) return resolve(context);
             const accountId = tokenRecord.ownerId;
             dq.users.getById(accountId).then(userRecord => {
+                debugV('getContext: userRecord:', userRecord);
                 context.token = tokenRecord;
                 context.user = userRecord;
-                return resolve(context);
+                resolve(context);
             }).catch(reject);
         }).catch(error => { console.log('fuck'); reject(error); });
     });
