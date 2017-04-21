@@ -30,6 +30,7 @@ router.route('/:uid/related')
 
 // Get beer information
 function getBeer(req: express.Request, res: express.Response): Promise<rest.Response> {
+    debug('getBeer');
     return new Promise<rest.Response>((resolve, reject) => {
         const beerId = req.params.uid;
         arbiter.drinks.getByUPC(beerId)
@@ -59,6 +60,7 @@ function registerBeer(req: express.Request, res: express.Response): Promise<rest
 }
 
 function getRelated(req: express.Request, res: express.Response): Promise<rest.Response> {
+    debug('getRelated');
     return new Promise<rest.Response>((resolve, reject) => {
         const beerId = req.params.uid;
         arbiter.drinks.getRelated(beerId)
@@ -69,11 +71,14 @@ function getRelated(req: express.Request, res: express.Response): Promise<rest.R
 
 // View account log.
 function accountLog(req: express.Request, res: express.Response): Promise<rest.Response> {
+    debug('log');
     return new Promise<rest.Response>((resolve, reject) => {
         getContext(req).then(requestContext => {
             const user = requestContext.user;
             dq.beerlogs.getByOwner(user.id)
-                .then(records => { resolve(rest.Response.fromSuccess({ items: records.map(dq.beerlogs.mapToConsumable) })); })
+                .then(records => {
+                    debug('resolving'); resolve(rest.Response.fromSuccess({ items: records }));
+                })
                 .catch(error => { rest.Response.fromServerError(error); });
         });
     });
